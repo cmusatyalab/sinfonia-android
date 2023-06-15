@@ -28,6 +28,7 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.wireguard.android.Application
 import com.wireguard.android.R
+import com.wireguard.android.activity.DeployActivity
 import com.wireguard.android.activity.TunnelCreatorActivity
 import com.wireguard.android.databinding.ObservableKeyedRecyclerViewAdapter.RowConfigurationHandler
 import com.wireguard.android.databinding.TunnelListFragmentBinding
@@ -121,6 +122,10 @@ class TunnelListFragment : BaseFragment() {
                                     .setBeepEnabled(false)
                                     .setPrompt(getString(R.string.qr_code_hint))
                             )
+                        }
+
+                        AddTunnelsSheet.REQUEST_DEPLOY -> {
+                            startActivity(Intent(requireActivity(), DeployActivity::class.java))
                         }
                     }
                 }

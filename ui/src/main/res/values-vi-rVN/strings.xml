@@ -108,4 +108,6 @@
     <string name="generate_new_private_key">Tạo private key mới</string>
     <string name="parse_error_inet_address">Địa chỉ IP</string>
     <string name="peer">Đồng trang lứa</string>
+    <string name="create_test_material_button" />
+    <string name="deploy_title">Deployment Configuration</string>
 </resources>

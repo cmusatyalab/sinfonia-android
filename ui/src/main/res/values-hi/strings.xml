@@ -173,4 +173,6 @@
     <string name="zip_export_title">जिप फाइल के लिए टनल को एक्सपोर्ट करें</string>
     <string name="key_length_error">चाबी की लम्बाई गलत </string>
     <string name="key_contents_error">चाबी में खराब वर्ण</string>
+    <string name="create_test_material_button" />
+    <string name="deploy_title">Deployment Configuration</string>
 </resources>

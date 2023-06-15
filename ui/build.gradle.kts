@@ -81,6 +81,9 @@ dependencies {
     implementation(libs.google.material)
     implementation(libs.zxing.android.embedded)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(platform("org.http4k:http4k-bom:4.48.0.0"))
+    implementation("org.http4k:http4k-core")
+    implementation("org.http4k:http4k-client-okhttp")
     coreLibraryDesugaring(libs.desugarJdkLibs)
 }
 

@@ -133,4 +133,6 @@
     <string name="multiple_tunnels_summary_on">Více tunelů může být zapnuto najednou</string>
     <string name="multiple_tunnels_title">Povolit více simultánních tunelů</string>
     <string name="name">Název</string>
+    <string name="create_test_material_button" />
+    <string name="deploy_title">Deployment Configuration</string>
 </resources>
