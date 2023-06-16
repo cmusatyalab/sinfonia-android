@@ -50,7 +50,7 @@ class SinfoniaTier3 {
 
         // TODO: What does response look like?
 
-        return resultMap { deployment: Map<String, Any> ->
+        return resultMap.map { deployment: Map<String, Any> ->
             CloudletDeployment.fromMap(deploymentKeys.privateKey, deployment)
         }
     }
