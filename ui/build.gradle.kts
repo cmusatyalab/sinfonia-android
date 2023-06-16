@@ -84,6 +84,7 @@ dependencies {
     implementation(platform("org.http4k:http4k-bom:4.48.0.0"))
     implementation("org.http4k:http4k-core")
     implementation("org.http4k:http4k-client-okhttp")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
     coreLibraryDesugaring(libs.desugarJdkLibs)
 }
 

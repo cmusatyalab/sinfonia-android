@@ -2,14 +2,14 @@ package com.wireguard.android.model
 
 import android.util.Log
 import com.wireguard.config.Config
-import com.wireguard.crypto.KeyPair
+import com.wireguard.crypto.Key
 import java.io.InputStream
 import java.net.URL
 import java.util.UUID
 
 class CloudletDeployment(
         val applicationUuid: UUID,
-        val applicationKey: KeyPair,
+        val applicationKey: Key,
         val status: String,
         val tunnelConfig: Config,
         val created: String
@@ -42,12 +42,12 @@ class CloudletDeployment(
     companion object {
         private const val TAG = "WireGuard/CloudletDeployment"
 
-        fun fromMap(privateKey: KeyPair, resp: Map<String, Any>) : CloudletDeployment {
+        fun fromMap(privateKey: Key, resp: Map<String, Any>) : CloudletDeployment {
             val config = Config.parse(resp["TunnelConfig"] as InputStream)  // PrivateKey?
 
             return CloudletDeployment(
                     UUID.fromString(resp["UUID"] as String),
-                    resp["ApplicationKey"] as KeyPair,
+                    resp["ApplicationKey"] as Key,
                     resp["Status"] as String,
                     config as WireguardConfig,
                     resp["DeploymentName"] as String,
