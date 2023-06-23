@@ -175,4 +175,12 @@
     <string name="key_contents_error">चाबी में खराब वर्ण</string>
     <string name="create_test_material_button" />
     <string name="deploy_title">Deployment Configuration</string>
+    <string name="deployment">Deployment</string>
+    <string name="deployment_name">Name</string>
+    <string name="application_title">Application</string>
+    <string name="tier_one_url_label">Cloud URL</string>
+    <string name="uuid_label">UUID</string>
+    <string name="application_key">Application Key</string>
+    <string name="deployment_status">Deployment Status</string>
+    <string name="created_label">Created</string>
 </resources>

@@ -2,56 +2,54 @@ package com.wireguard.android.model
 
 import android.util.Log
 import com.wireguard.config.Config
+import com.wireguard.config.Interface
+import com.wireguard.config.Peer
 import com.wireguard.crypto.Key
-import java.io.InputStream
-import java.net.URL
+import com.wireguard.crypto.KeyPair
+import java.util.ArrayList
 import java.util.UUID
 
 class CloudletDeployment(
-        val applicationUuid: UUID,
+        val uuid: UUID,
         val applicationKey: Key,
         val status: String,
         val tunnelConfig: Config,
-        val created: String
+        val deploymentName: String?,
+        val created: String?
 ) {
-    private var tier1Url: URL = URL("https://cmu.findcloudlet.org")
-    private var applicationUuid: UUID = appUuid("helloworld")
-    private var deploymentName: String = ""
-
-    private fun appUuid(appName: String): UUID {
-        val uuid = ALIASES?.get(appName)
-        return UUID.fromString(uuid)
-    }
-
-    private fun sinfoniaTier3(
-            application: Sequence<String>,
-            configDebug: Boolean = false,https://www.geeksforgeeks.org/kotlin-abstract-class/
-            debug: Boolean = false,
-            zeroconf: Boolean = false
-    ) {
-        TODO("")
-    }
-
-    private fun sinfoniaDeploy(
-            debug: Boolean = false,
-            zerconf: Boolean = false
-    ) {
-        TODO("Request 1 or more backend deployments to tier 1")
-    }
 
     companion object {
         private const val TAG = "WireGuard/CloudletDeployment"
 
-        fun fromMap(privateKey: Key, resp: Map<String, Any>) : CloudletDeployment {
-            val config = Config.parse(resp["TunnelConfig"] as InputStream)  // PrivateKey?
+        fun fromMap(privateKey: KeyPair, resp: Map<String, Any>) : CloudletDeployment {
+            val configBuilder = Config.Builder()
+            val interfaceBuilder = Interface.Builder()
+            val peerBuilder = Peer.Builder()
+
+            val tunnelConfig = resp["TunnelConfig"] as Map<String, *>
+            interfaceBuilder.setKeyPair(privateKey)
+                    .parseAddresses(tunnelConfig["address"] as ArrayList<String>)
+                    .parseDnsServers(tunnelConfig["dns"] as ArrayList<String>)
+
+            peerBuilder.parsePublicKey(tunnelConfig["publicKey"] as String)
+                    .parseEndpoint(tunnelConfig["endpoint"] as String)
+                    .parseAllowedIPs(tunnelConfig["allowedIPs"] as ArrayList<String>)
+                    .setPersistentKeepalive(30)
+
+            val config = configBuilder
+                    .setInterface(interfaceBuilder.build())
+                    .addPeer(peerBuilder.build())
+                    .build()
+
+            Log.d(TAG, "TunnelConfig: $tunnelConfig")
 
             return CloudletDeployment(
                     UUID.fromString(resp["UUID"] as String),
-                    resp["ApplicationKey"] as Key,
+                    Key.fromBase64(resp["ApplicationKey"] as String),
                     resp["Status"] as String,
-                    config as WireguardConfig,
-                    resp["DeploymentName"] as String,
-                    resp["created"] as String
+                    config as Config,
+                    resp["DeploymentName"] as String?,
+                    resp["created"] as String?
             )
         }
     }

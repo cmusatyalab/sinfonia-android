@@ -14,6 +14,7 @@ import com.wireguard.crypto.KeyPair;
 import com.wireguard.util.NonNullForAll;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -350,9 +351,36 @@ public final class Interface {
             }
         }
 
+        public Builder parseAddresses(final ArrayList<String> addresses) throws BadConfigException {
+            try {
+                for (final String address: addresses)
+                    addAddress(InetNetwork.parse(address));
+                return this;
+            } catch (final ParseException e) {
+                throw new BadConfigException(Section.INTERFACE, Location.ADDRESS, e);
+            }
+        }
+
         public Builder parseDnsServers(final CharSequence dnsServers) throws BadConfigException {
             try {
                 for (final String dnsServer : Attribute.split(dnsServers)) {
+                    try {
+                        addDnsServer(InetAddresses.parse(dnsServer));
+                    } catch (final ParseException e) {
+                        if (e.getParsingClass() != InetAddress.class || !InetAddresses.isHostname(dnsServer))
+                            throw e;
+                        addDnsSearchDomain(dnsServer);
+                    }
+                }
+                return this;
+            } catch (final ParseException e) {
+                throw new BadConfigException(Section.INTERFACE, Location.DNS, e);
+            }
+        }
+
+        public Builder parseDnsServers(final ArrayList<String> dnsServers) throws BadConfigException {
+            try {
+                for (final String dnsServer: dnsServers) {
                     try {
                         addDnsServer(InetAddresses.parse(dnsServer));
                     } catch (final ParseException e) {

@@ -12,6 +12,7 @@ import com.wireguard.crypto.Key;
 import com.wireguard.crypto.KeyFormatException;
 import com.wireguard.util.NonNullForAll;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -238,6 +239,16 @@ public final class Peer {
         public Builder parseAllowedIPs(final CharSequence allowedIps) throws BadConfigException {
             try {
                 for (final String allowedIp : Attribute.split(allowedIps))
+                    addAllowedIp(InetNetwork.parse(allowedIp));
+                return this;
+            } catch (final ParseException e) {
+                throw new BadConfigException(Section.PEER, Location.ALLOWED_IPS, e);
+            }
+        }
+
+        public Builder parseAllowedIPs(final ArrayList<String> allowedIps) throws BadConfigException {
+            try {
+                for (final String allowedIp : allowedIps)
                     addAllowedIp(InetNetwork.parse(allowedIp));
                 return this;
             } catch (final ParseException e) {
