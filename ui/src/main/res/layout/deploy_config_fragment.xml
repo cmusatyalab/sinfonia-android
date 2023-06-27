@@ -24,134 +24,126 @@
             type="com.wireguard.android.viewmodel.SinfoniaProxy" />
     </data>
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/main_container"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface">
+        android:layout_height="match_parent"
+        android:background="?attr/colorSurface"
+        android:clickable="true"
+        android:focusable="true">
 
-        <ScrollView
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?attr/colorSurface"
-            android:clickable="true"
-            android:focusable="true">
+            android:layout_height="wrap_content">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/application_detail_card"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/tunnel_detail_card"
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/normal_margin"
-                    android:layout_marginTop="@dimen/bottom_sheet_icon_padding"
-                    android:layout_marginEnd="@dimen/normal_margin"
-                    android:layout_marginBottom="@dimen/normal_margin"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
+                    android:layout_height="wrap_content">
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/application_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/application_title"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/application_title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/application_title"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                    <TextView
+                        android:id="@+id/application_name_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:labelFor="@+id/application_name_text"
+                        android:text="@string/name"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/application_title" />
 
-                        <TextView
-                            android:id="@+id/application_name_label"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/name"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/application_title" />
+                    <TextView
+                        android:id="@+id/application_name_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/name"
+                        android:nextFocusDown="@id/tier_one_url_text"
+                        android:nextFocusForward="@id/tier_one_url_text"
+                        android:onClick="@{ClipboardUtils::copyTextView}"
+                        android:text="@{sinfonia.applicationName}"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/application_name_label"
+                        tools:text="--" />
 
-                        <TextView
-                            android:id="@+id/application_name_text"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:contentDescription="@string/name"
-                            android:nextFocusDown="@id/tier_one_url"
-                            android:nextFocusForward="@id/tier_one_url"
-                            android:onClick="@{ClipboardUtils::copyTextView}"
-                            android:text="@{sinfonia.applicationName}"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/application_name_label"
-                            tools:text="helloworld" />
+                    <TextView
+                        android:id="@+id/tier_one_url"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/tier_one_url_label"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/application_name_text" />
 
-                        <TextView
-                            android:id="@+id/tier_one_url"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/tier_one_url_label"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/application_name_text" />
+                    <TextView
+                        android:id="@+id/tier_one_url_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/tier_one_url_label"
+                        android:nextFocusDown="@id/uuid_text"
+                        android:nextFocusForward="@id/uuid_text"
+                        android:onClick="@{ClipboardUtils::copyTextView}"
+                        android:text="@{sinfonia.tier1Url.toString()}"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tier_one_url"
+                        tools:text="--" />
 
-                        <TextView
-                            android:id="@+id/tier_one_url_text"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:contentDescription="@string/name"
-                            android:nextFocusDown="@id/uuid_label"
-                            android:nextFocusForward="@id/uuid_label"
-                            android:onClick="@{ClipboardUtils::copyTextView}"
-                            android:text="@{sinfonia.tier1Url.toString()}"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/tier_one_url"
-                            tools:text="https://cmu.findcloudlet.org" />
+                    <TextView
+                        android:id="@+id/uuid_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/uuid_label"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tier_one_url_text" />
 
-                        <TextView
-                            android:id="@+id/uuid_label"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/uuid_label"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/tier_one_url_text" />
+                    <TextView
+                        android:id="@+id/uuid_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/uuid_label"
+                        android:nextFocusDown="@id/deployments_layout"
+                        android:nextFocusForward="@id/deployments_layout"
+                        android:onClick="@{ClipboardUtils::copyTextView}"
+                        android:text="@{sinfonia.uuid.toString()}"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/uuid_label"
+                        tools:text="--" />
 
-                        <TextView
-                            android:id="@+id/uuid_text"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:contentDescription="@string/name"
-                            android:nextFocusDown="@id/deployments_layout"
-                            android:nextFocusForward="@id/deployments_layout"
-                            android:onClick="@{ClipboardUtils::copyTextView}"
-                            android:text="@{sinfonia.uuid.toString()}"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/uuid_label"
-                            tools:text="00000000-0000-0000-0000-000000000000" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <LinearLayout
-                    android:id="@+id/deployments_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:divider="@null"
-                    android:orientation="vertical"
-                    app:items="@{sinfonia.deployments}"
-                    app:layout="@{@layout/deployment_detail}"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tunnel_detail_card"
-                    tools:ignore="UselessLeaf" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </ScrollView>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+            <LinearLayout
+                android:id="@+id/deployments_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:divider="@null"
+                android:orientation="vertical"
+                app:items="@{sinfonia.deployments}"
+                app:layout="@{@layout/deployment_detail}"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/application_detail_card"
+                tools:ignore="UselessLeaf" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 </layout>

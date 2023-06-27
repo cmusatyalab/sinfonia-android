@@ -260,4 +260,5 @@ Aitäh veelkord sinu panuse eest.</string>
     <string name="application_key">Application Key</string>
     <string name="deployment_status">Deployment Status</string>
     <string name="created_label">Created</string>
+    <string name="launch">Launch</string>
 </resources>

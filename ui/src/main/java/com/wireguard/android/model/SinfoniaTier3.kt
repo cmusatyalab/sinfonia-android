@@ -73,7 +73,7 @@ class SinfoniaTier3(
         val resultMap: List<Map<String, Any>> = objectMapper.readValue(responseBody, typeRef)
 
         return resultMap.map { deployment: Map<String, Any> ->
-            CloudletDeployment.fromMap(deploymentKeys, deployment)
+            CloudletDeployment(deploymentKeys, deployment)
         }
     }
 

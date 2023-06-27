@@ -20,6 +20,7 @@ import com.wireguard.android.activity.BaseActivity
 import com.wireguard.android.activity.BaseActivity.OnSelectedTunnelChangedListener
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
+import com.wireguard.android.databinding.DeploymentDetailBinding
 import com.wireguard.android.databinding.TunnelDetailFragmentBinding
 import com.wireguard.android.databinding.TunnelListItemBinding
 import com.wireguard.android.model.ObservableTunnel
@@ -62,6 +63,7 @@ abstract class BaseFragment : Fragment(), OnSelectedTunnelChangedListener {
         val tunnel = when (val binding = DataBindingUtil.findBinding<ViewDataBinding>(view)) {
             is TunnelDetailFragmentBinding -> binding.tunnel
             is TunnelListItemBinding -> binding.item
+            is DeploymentDetailBinding -> binding.tunnel
             else -> return
         } ?: return
         val activity = activity ?: return

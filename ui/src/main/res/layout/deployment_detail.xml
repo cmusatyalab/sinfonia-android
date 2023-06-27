@@ -7,7 +7,15 @@
         <import type="com.wireguard.android.util.ClipboardUtils" />
 
         <variable
-            name="deployment"
+            name="fragment"
+            type="com.wireguard.android.fragment.DeployConfigFragment" />
+
+        <variable
+            name="tunnel"
+            type="com.wireguard.android.model.ObservableTunnel" />
+
+        <variable
+            name="item"
             type="com.wireguard.android.viewmodel.CloudletDeploymentProxy" />
     </data>
 
@@ -29,6 +37,18 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <com.wireguard.android.widget.ContainedButton
+                android:id="@+id/deployment_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:nextFocusDown="@id/deployment_name_text"
+                android:nextFocusForward="@id/deployment_name_text"
+                android:text="@string/launch"
+                app:checked="@{false}"
+                app:layout_constraintBaseline_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:onCheckedChanged="@{fragment::onLaunchClicked}" />
+
             <TextView
                 android:id="@+id/deployment_name_label"
                 android:layout_width="wrap_content"
@@ -44,14 +64,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/deployment_name"
+                android:nextFocusUp="@id/deployment_button"
                 android:nextFocusDown="@id/application_key_text"
                 android:nextFocusForward="@id/application_key_text"
                 android:onClick="@{ClipboardUtils::copyTextView}"
-                android:text="@{deployment.deploymentName}"
+                android:text="@{item.deploymentName}"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/deployment_name_label"
-                tools:text="helloworld-deployment" />
+                tools:text="--" />
 
             <TextView
                 android:id="@+id/application_key_label"
@@ -61,7 +82,6 @@
                 android:layout_marginTop="8dp"
                 android:labelFor="@+id/application_key_text"
                 android:text="@string/application_key"
-                android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/deployment_name_text"
                 tools:visibility="visible" />
@@ -74,9 +94,8 @@
                 android:contentDescription="@string/application_key"
                 android:nextFocusUp="@id/deployment_name_text"
                 android:onClick="@{ClipboardUtils::copyTextView}"
-                android:text="@{deployment.applicationKey.toString()}"
+                android:text="@{item.applicationKey.toString()}"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/application_key_label"
                 tools:text="--"
@@ -90,7 +109,6 @@
                 android:layout_marginTop="8dp"
                 android:labelFor="@+id/deployment_status_text"
                 android:text="@string/deployment_status"
-                android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/application_key_text"
                 tools:visibility="visible" />
@@ -103,9 +121,8 @@
                 android:contentDescription="@string/deployment_status"
                 android:nextFocusUp="@id/application_key_text"
                 android:onClick="@{ClipboardUtils::copyTextView}"
-                android:text="@{deployment.deploymentStatus}"
+                android:text="@{item.deploymentStatus}"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/deployment_status_label"
                 tools:text="--"
@@ -119,7 +136,6 @@
                 android:layout_marginTop="8dp"
                 android:labelFor="@+id/created_text"
                 android:text="@string/created_label"
-                android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/deployment_status_text"
                 tools:visibility="visible" />
@@ -132,9 +148,8 @@
                 android:contentDescription="@string/deployment_status"
                 android:nextFocusUp="@id/deployment_status_text"
                 android:onClick="@{ClipboardUtils::copyTextView}"
-                android:text="@{deployment.created}"
+                android:text="@{item.created}"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/created_label"
                 tools:text="--"

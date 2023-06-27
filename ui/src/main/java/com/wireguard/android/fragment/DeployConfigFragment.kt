@@ -7,15 +7,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.os.BundleCompat
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.wireguard.android.Application
 import com.wireguard.android.R
+import com.wireguard.android.backend.Tunnel
 import com.wireguard.android.databinding.DeployConfigFragmentBinding
+import com.wireguard.android.databinding.DeploymentDetailBinding
 import com.wireguard.android.model.ObservableTunnel
 import com.wireguard.android.model.SinfoniaTier3
 import com.wireguard.android.util.ErrorMessages
@@ -51,6 +56,13 @@ class DeployConfigFragment : BaseFragment() {
         val client = SinfoniaTier3()
         activity.lifecycleScope.launch(Dispatchers.IO) {
             binding?.sinfonia = SinfoniaProxy(client.deploy())
+            view.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener{
+                override fun onGlobalLayout() {
+                    view.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    val launchButton = view.findViewById(R.id.deployment_button) as MaterialButton? ?: return
+                    launchButton.setOnClickListener{ onLaunchClicked(launchButton, true) }
+                }
+            })
         }
         super.onViewCreated(view, savedInstanceState)
     }
@@ -97,11 +109,11 @@ class DeployConfigFragment : BaseFragment() {
             val error = ErrorMessages[throwable]
             val message = ctx.getString(R.string.tunnel_create_error, error)
             Log.e(TAG, message, throwable)
-            val binding = binding
-            if (binding != null)
-                Snackbar.make(binding.mainContainer, message, Snackbar.LENGTH_LONG).show()
-            else
-                Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+//            val binding = binding
+//            if (binding != null)
+//                Snackbar.make(binding.mainContainer, message, Snackbar.LENGTH_LONG).show()
+//            else
+//                Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
         }
     }
     private fun onFinished() {
@@ -144,35 +156,41 @@ class DeployConfigFragment : BaseFragment() {
         }
     }
 
-    private fun onLaunchClick(applications: List<String>): Boolean {
-        Log.i(TAG, "onLaunchClick")
-        // TODO("Place this line before bringing up the tunnel")
-        binding?.sinfonia?.deployments?.forEach { it.tunnelConfig.`interface`.includedApplications.addAll(applications) }
+    fun onLaunchClicked(view: MaterialButton, checked: Boolean) {
+        val binding = binding ?: return
+        val sinfonia = binding.sinfonia ?: return
+        Log.i(TAG, "onLaunchClicked: $checked")
+//        // TODO("Place this line before bringing up the tunnel")
+//        sinfonia.deployments.forEach { it.tunnelConfig.`interface`.includedApplications.addAll(applications) }
         val newConfig = try {
-            binding?.sinfonia?.deployments?.get(0)?.resolve()?.tunnelConfig   // blindly use first from the returned deployments
+            sinfonia.deployments[0]?.resolve()?.tunnelConfig   // blindly use first from the returned deployments
         } catch (e: Throwable) {
             val error = ErrorMessages[e]
-            val tunnelName = if (tunnel == null) binding!!.name else tunnel!!.name
+            val tunnelName = if (tunnel == null) binding.name else tunnel!!.name
             val message = getString(R.string.config_save_error, tunnelName, error)
             Log.e(TAG, message, e)
-            Snackbar.make(binding!!.mainContainer, error, Snackbar.LENGTH_LONG).show()
-            return false
+//            Snackbar.make(binding.mainContainer, error, Snackbar.LENGTH_LONG).show()
+            return
         }
+        // Set the tunnel name
+        binding.name = sinfonia.applicationName
+
         val activity = requireActivity()
         activity.lifecycleScope.launch {
-            Log.d(TAG, "Attempting to create new tunnel " + binding!!.name)
+            Log.d(TAG, "Attempting to create new tunnel " + binding.name)
             val manager = Application.getTunnelManager()
             try {
-                onTunnelCreated(manager.create(binding!!.name!!, newConfig), null)
+                onTunnelCreated(manager.create(binding.name!!, newConfig), null)
             } catch (e: Throwable) {
                 onTunnelCreated(null, e)
             }
         }
 
+        setTunnelState(view, tunnel?.state == Tunnel.State.UP)
+
         val intent = Intent(Intent.ACTION_VIEW)
-        intent.setPackage(binding!!.config!!.`interface`.includedApplications[0])
+//        intent.setPackage(binding.config!!.`interface`.includedApplications[0])
         if (intent.resolveActivity(Application.get().packageManager) != null) startActivity(intent)
-        return true
     }
 
     companion object {
