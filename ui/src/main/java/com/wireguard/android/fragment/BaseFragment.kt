@@ -64,7 +64,7 @@ abstract class BaseFragment : Fragment(), OnSelectedTunnelChangedListener {
         val tunnel = when (val binding = DataBindingUtil.findBinding<ViewDataBinding>(view)) {
             is TunnelDetailFragmentBinding -> binding.tunnel
             is TunnelListItemBinding -> binding.item
-            is DeploymentDetailBinding -> binding.tunnel
+            is DeployConfigFragmentBinding -> binding.tunnel
             else -> return
         } ?: return
         val activity = activity ?: return

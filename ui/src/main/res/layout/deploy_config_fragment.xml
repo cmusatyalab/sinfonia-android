@@ -10,10 +10,9 @@
             name="fragment"
             type="com.wireguard.android.fragment.DeployConfigFragment" />
 
-        <!--Change to tier 1 deployment configuration-->
         <variable
-            name="config"
-            type="com.wireguard.android.viewmodel.ConfigProxy" />
+            name="tunnel"
+            type="com.wireguard.android.model.ObservableTunnel" />
 
         <variable
             name="name"

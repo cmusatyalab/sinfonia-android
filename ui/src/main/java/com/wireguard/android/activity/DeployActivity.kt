@@ -16,6 +16,7 @@ class DeployActivity : BaseActivity() {
     }
 
     override fun onSelectedTunnelChanged(oldTunnel: ObservableTunnel?, newTunnel: ObservableTunnel?): Boolean {
-        TODO("Not yet implemented")
+        finish()
+        return true
     }
 }

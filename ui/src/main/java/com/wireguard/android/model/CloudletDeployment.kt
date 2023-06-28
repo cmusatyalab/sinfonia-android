@@ -1,6 +1,5 @@
 package com.wireguard.android.model
 
-import android.util.Log
 import com.wireguard.config.Config
 import com.wireguard.config.Interface
 import com.wireguard.config.Peer
@@ -13,14 +12,14 @@ class CloudletDeployment {
     var uuid: UUID private set
     var applicationKey: Key private set
     var status: String private set
-    lateinit var tunnelConfig: Config private set
+    var tunnelConfig: Config private set
     var deploymentName: String? = null
         private set
     var created: String? = null
         private set
 
 
-    lateinit var state: State
+    var state: State
 
     constructor(
             uuid: UUID,
@@ -39,7 +38,7 @@ class CloudletDeployment {
         this.created = created
     }
 
-    constructor(privateKey: KeyPair, resp: Map<String, Any>) {
+    constructor(application: List<String>, privateKey: KeyPair, resp: Map<String, Any>) {
         this.uuid = UUID.fromString(resp["UUID"] as String)
         this.applicationKey = Key.fromBase64(resp["ApplicationKey"] as String)
         this.status = resp["Status"] as String
@@ -53,6 +52,7 @@ class CloudletDeployment {
         interfaceBuilder.setKeyPair(privateKey)
                 .parseAddresses(tunnelConfig["address"] as ArrayList<String>)
                 .parseDnsServers(tunnelConfig["dns"] as ArrayList<String>)
+                .includeApplications(application)
 
         peerBuilder.parsePublicKey(tunnelConfig["publicKey"] as String)
                 .parseEndpoint(tunnelConfig["endpoint"] as String)
@@ -66,7 +66,7 @@ class CloudletDeployment {
 
         this.tunnelConfig = config
         this.deploymentName = resp["DeploymentName"] as String?
-        this.created = resp["created"] as String?
+        this.created = resp["Created"] as String?
     }
 
     enum class State {

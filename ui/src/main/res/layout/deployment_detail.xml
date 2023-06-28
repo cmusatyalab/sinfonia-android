@@ -11,10 +11,6 @@
             type="com.wireguard.android.fragment.DeployConfigFragment" />
 
         <variable
-            name="tunnel"
-            type="com.wireguard.android.model.ObservableTunnel" />
-
-        <variable
             name="item"
             type="com.wireguard.android.viewmodel.CloudletDeploymentProxy" />
     </data>
