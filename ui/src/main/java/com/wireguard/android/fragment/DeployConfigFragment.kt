@@ -60,7 +60,7 @@ class DeployConfigFragment : BaseFragment() {
                 override fun onGlobalLayout() {
                     view.viewTreeObserver.removeOnGlobalLayoutListener(this)
                     val launchButton = view.findViewById(R.id.deployment_button) as MaterialButton? ?: return
-                    launchButton.setOnClickListener{ onLaunchClicked(launchButton, true) }
+                    launchButton.setOnClickListener{ onLaunchClicked(view, true) }
                 }
             })
         }
@@ -156,7 +156,7 @@ class DeployConfigFragment : BaseFragment() {
         }
     }
 
-    fun onLaunchClicked(view: MaterialButton, checked: Boolean) {
+    fun onLaunchClicked(view: View, checked: Boolean) {
         val binding = binding ?: return
         val sinfonia = binding.sinfonia ?: return
         Log.i(TAG, "onLaunchClicked: $checked")
