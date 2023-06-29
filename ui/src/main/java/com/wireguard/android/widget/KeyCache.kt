@@ -93,6 +93,6 @@ class KeyCache(context: Context) {
         private const val TAG = "WireGuard/KeyCache"
         private const val PRIVATE_KEY = "privateKey"
         private const val CREATED = "created"
-        private const val LIFETIME = 24 * 60 * 60 * 1000
+        private const val LIFETIME = 1 * 60 * 60 * 1000    // TODO("Set a reasonable key lifetime")
     }
 }
