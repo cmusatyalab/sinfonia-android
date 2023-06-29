@@ -3,7 +3,8 @@ package com.wireguard.android.model
 import android.util.Log
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.wireguard.crypto.KeyPair
+import com.wireguard.android.Application
+import com.wireguard.android.widget.KeyCache
 import org.http4k.client.OkHttp
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
@@ -57,7 +58,8 @@ class SinfoniaTier3(
         val deployBase = tier1Url.toString()    // Input type string or URL?
         if (zeroconf) TODO("Zeroconf is not implemented")
 
-        val deploymentKeys = KeyPair()  // TODO: Implement key caching
+        val keyCache = KeyCache(Application.get())
+        val deploymentKeys = keyCache.getKeys(uuid)
         val deploymentUrl = "$deployBase/api/v1/deploy/$uuid/${deploymentKeys.publicKey.toBase64()}"
 
         Log.d(TAG, "post deploymentUrl: $deploymentUrl")

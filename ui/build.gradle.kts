@@ -22,7 +22,7 @@ android {
     namespace = pkg
     defaultConfig {
         applicationId = pkg
-        minSdk = 21
+        minSdk = 23
         targetSdk = 33
         versionCode = providers.gradleProperty("wireguardVersionCode").get().toInt()
         versionName = providers.gradleProperty("wireguardVersionName").get()
@@ -84,7 +84,8 @@ dependencies {
     implementation(platform("org.http4k:http4k-bom:4.48.0.0"))
     implementation("org.http4k:http4k-core")
     implementation("org.http4k:http4k-client-okhttp")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+    implementation(libs.jackson.databind)
+    implementation(libs.androidx.security.crypto)
     coreLibraryDesugaring(libs.desugarJdkLibs)
 }
 
