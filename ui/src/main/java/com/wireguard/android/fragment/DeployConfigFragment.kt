@@ -2,6 +2,7 @@ package com.wireguard.android.fragment
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,14 +18,12 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.wireguard.android.Application
 import com.wireguard.android.R
-import com.wireguard.android.backend.Tunnel
 import com.wireguard.android.databinding.DeployConfigFragmentBinding
 import com.wireguard.android.model.ObservableTunnel
 import com.wireguard.android.model.SinfoniaTier3
 import com.wireguard.android.util.ErrorMessages
 import com.wireguard.android.viewmodel.ConfigProxy
 import com.wireguard.android.viewmodel.SinfoniaProxy
-import com.wireguard.android.widget.ToggleSwitch
 import com.wireguard.config.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -183,10 +182,8 @@ class DeployConfigFragment : BaseFragment() {
                 return@launch
             }
             setTunnelState(view, true)
-            Log.v(TAG, "Included: ${tunnel?.config?.`interface`?.includedApplications}")
-            Log.v(TAG, "Excluded: ${tunnel?.config?.`interface`?.excludedApplications}")
             try {
-                launchApplication(sinfonia.application.toString())
+                sinfonia.application.forEach { application: String -> launchApplication(application) }
             } catch (e: Throwable) {
                 val error = ErrorMessages[e]
                 Log.e(TAG, "Cannot launch application: ${binding.name}", e)
@@ -207,9 +204,9 @@ class DeployConfigFragment : BaseFragment() {
     }
 
     private fun launchApplication(application: String) {
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.setPackage(application)
-        if (intent.resolveActivity(Application.get().packageManager) != null) startActivity(intent)
+        val packageManager = Application.get().packageManager
+        val launchIntent = packageManager.getLaunchIntentForPackage(application)
+        if (launchIntent != null) startActivity(launchIntent) else startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(application)))
     }
 
     companion object {

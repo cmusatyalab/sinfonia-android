@@ -16,7 +16,7 @@ class SinfoniaTier3(
         url: String = "https://cmu.findcloudlet.org",
         applicationName: String = "helloworld",
         zeroconf: Boolean = false,
-        application: List<String> = listOf("helloworld")
+        application: List<String> = listOf("http://helloworld", "edu.cmu.cs.openrtist")
 ) {
     var tier1Url: URL
         private set
