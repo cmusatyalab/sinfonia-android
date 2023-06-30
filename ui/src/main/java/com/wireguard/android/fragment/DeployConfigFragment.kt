@@ -52,9 +52,14 @@ class DeployConfigFragment : BaseFragment() {
         Log.i(TAG, "onViewCreated")
         if (savedInstanceState == null) {
             val activity = requireActivity()
-            val client = SinfoniaTier3(applicationName = "helloworld")
+            val sinfonia = SinfoniaTier3(
+                    url = "https://cmu.findcloudlet.org",
+                    applicationName = "helloworld",
+                    zeroconf = false,
+                    application = listOf("com.android.chrome")
+            )
             activity.lifecycleScope.launch(Dispatchers.IO) {
-                binding?.sinfonia = SinfoniaProxy(client.deploy())
+                binding?.sinfonia = SinfoniaProxy(sinfonia.deploy())
                 addOnClickListener(view)
             }
         } else {

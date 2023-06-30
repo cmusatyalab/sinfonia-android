@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.wireguard.android.Application
 import com.wireguard.android.widget.KeyCache
+import okhttp3.OkHttpClient
 import org.http4k.client.OkHttp
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
@@ -16,8 +17,11 @@ class SinfoniaTier3(
         url: String = "https://cmu.findcloudlet.org",
         applicationName: String = "helloworld",
         zeroconf: Boolean = false,
-        application: List<String> = listOf("http://helloworld", "edu.cmu.cs.openrtist")
+        application: List<String> = listOf("com.android.chrome")
 ) {
+    private val okHttpClient = OkHttpClient.Builder()
+            .followRedirects(true)
+            .build()
     var tier1Url: URL
         private set
     var applicationName: String
@@ -28,7 +32,7 @@ class SinfoniaTier3(
         private set
     var application: List<String>
         private set
-    lateinit var deployments: List<CloudletDeployment>
+    var deployments: List<CloudletDeployment>
         private set
     var deployment: CloudletDeployment? = null
         private set
@@ -39,6 +43,7 @@ class SinfoniaTier3(
         this.uuid = UUID[applicationName]!!
         this.zeroconf = zeroconf
         this.application = application
+        this.deployments = listOf()
     }
 
     fun deploy(): SinfoniaTier3 {
@@ -64,7 +69,7 @@ class SinfoniaTier3(
 
         Log.d(TAG, "post deploymentUrl: $deploymentUrl")
 
-        val client: HttpHandler = OkHttp()
+        val client: HttpHandler = OkHttp(okHttpClient)
         val request = Request(Method.POST, deploymentUrl)
         val response = client(request)
 
