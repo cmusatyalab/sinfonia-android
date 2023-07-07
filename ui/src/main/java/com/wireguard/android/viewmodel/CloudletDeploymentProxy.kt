@@ -6,9 +6,9 @@ import androidx.core.os.ParcelCompat
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
 import com.wireguard.android.BR
-import com.wireguard.android.model.CloudletDeployment
 import com.wireguard.config.BadConfigException
 import com.wireguard.crypto.Key
+import edu.cmu.cs.sinfonia.model.CloudletDeployment
 import java.util.UUID
 
 class CloudletDeploymentProxy : BaseObservable, Parcelable {

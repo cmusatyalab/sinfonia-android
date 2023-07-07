@@ -18,7 +18,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.wireguard.android.R
-import com.wireguard.android.model.SinfoniaTier3
 import com.wireguard.android.util.resolveAttribute
 
 class AddTunnelsSheet : BottomSheetDialogFragment() {

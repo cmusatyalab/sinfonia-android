@@ -20,11 +20,11 @@ import com.wireguard.android.Application
 import com.wireguard.android.R
 import com.wireguard.android.databinding.DeployConfigFragmentBinding
 import com.wireguard.android.model.ObservableTunnel
-import com.wireguard.android.model.SinfoniaTier3
 import com.wireguard.android.util.ErrorMessages
 import com.wireguard.android.viewmodel.ConfigProxy
 import com.wireguard.android.viewmodel.SinfoniaProxy
 import com.wireguard.config.Config
+import edu.cmu.cs.sinfonia.model.SinfoniaTier3
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -53,6 +53,7 @@ class DeployConfigFragment : BaseFragment() {
         if (savedInstanceState == null) {
             val activity = requireActivity()
             val sinfonia = SinfoniaTier3(
+                    ctx = Application.get(),
                     url = "https://cmu.findcloudlet.org",
                     applicationName = "helloworld",
                     zeroconf = false,
@@ -143,9 +144,10 @@ class DeployConfigFragment : BaseFragment() {
         Log.i(TAG, "onSelectedTunnelChanged")
         tunnel = newTunnel
         if (binding == null) return
-        binding!!.sinfonia?.deployment?.tunnelConfig = ConfigProxy()
+        val sinfonia = binding!!.sinfonia ?: return
+        sinfonia.deployment?.tunnelConfig = ConfigProxy()
         if (tunnel != null) {
-            binding!!.name = tunnel!!.name
+            sinfonia.applicationName = tunnel!!.name
             lifecycleScope.launch {
                 try {
                     onConfigLoaded(tunnel!!.getConfigAsync())
@@ -153,7 +155,7 @@ class DeployConfigFragment : BaseFragment() {
                 }
             }
         } else {
-            binding!!.name = ""
+            sinfonia.applicationName = ""
         }
         binding!!.tunnel = tunnel
     }
@@ -166,22 +168,19 @@ class DeployConfigFragment : BaseFragment() {
             sinfonia.deployment?.resolve()?.tunnelConfig
         } catch (e: Throwable) {
             val error = ErrorMessages[e]
-            val tunnelName = if (tunnel == null) binding.name else tunnel!!.name
+            val tunnelName = if (tunnel == null) sinfonia.applicationName else tunnel!!.name
             val message = getString(R.string.config_save_error, tunnelName, error)
             Log.e(TAG, message, e)
             Snackbar.make(binding.applicationDetailCard, error, Snackbar.LENGTH_LONG).show()
             return
         }
 
-        // Set the tunnel name
-        binding.name = sinfonia.applicationName
-
         val activity = requireActivity()
         activity.lifecycleScope.launch {
-            Log.d(TAG, "Attempting to create new tunnel " + binding.name)
+            Log.d(TAG, "Attempting to create new tunnel " + sinfonia.applicationName)
             val manager = Application.getTunnelManager()
             try {
-                onTunnelCreated(manager.create(binding.name!!, newConfig), null)
+                onTunnelCreated(manager.create(sinfonia.applicationName, newConfig), null)
             } catch (e: Throwable) {
                 onTunnelCreated(null, e)
                 return@launch
@@ -191,7 +190,7 @@ class DeployConfigFragment : BaseFragment() {
                 sinfonia.application.forEach { application: String -> launchApplication(application) }
             } catch (e: Throwable) {
                 val error = ErrorMessages[e]
-                Log.e(TAG, "Cannot launch application: ${binding.name}", e)
+                Log.e(TAG, "Cannot launch application: ${sinfonia.applicationName}", e)
                 Snackbar.make(binding.applicationDetailCard, error, Snackbar.LENGTH_LONG).show()
             }
         }

@@ -67,6 +67,7 @@ android {
 
 dependencies {
     implementation(project(":tunnel"))
+    implementation(project(":sinfonia"))
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.appcompat)
@@ -81,11 +82,7 @@ dependencies {
     implementation(libs.google.material)
     implementation(libs.zxing.android.embedded)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(platform("org.http4k:http4k-bom:4.48.0.0"))
-    implementation("org.http4k:http4k-core")
-    implementation("org.http4k:http4k-client-okhttp")
     implementation(libs.jackson.databind)
-    implementation(libs.androidx.security.crypto)
     coreLibraryDesugaring(libs.desugarJdkLibs)
 }
 

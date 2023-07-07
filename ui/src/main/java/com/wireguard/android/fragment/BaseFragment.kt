@@ -21,7 +21,6 @@ import com.wireguard.android.activity.BaseActivity.OnSelectedTunnelChangedListen
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.android.databinding.DeployConfigFragmentBinding
-import com.wireguard.android.databinding.DeploymentDetailBinding
 import com.wireguard.android.databinding.TunnelDetailFragmentBinding
 import com.wireguard.android.databinding.TunnelListItemBinding
 import com.wireguard.android.model.ObservableTunnel

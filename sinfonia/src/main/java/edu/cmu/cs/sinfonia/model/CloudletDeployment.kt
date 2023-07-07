@@ -1,4 +1,4 @@
-package com.wireguard.android.model
+package edu.cmu.cs.sinfonia.model
 
 import com.wireguard.config.Config
 import com.wireguard.config.Interface
@@ -77,6 +77,6 @@ class CloudletDeployment {
     }
 
     companion object {
-        private const val TAG = "WireGuard/CloudletDeployment"
+        private const val TAG = "Sinfonia/CloudletDeployment"
     }
 }

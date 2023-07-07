@@ -1,4 +1,4 @@
-package com.wireguard.android.widget
+package edu.cmu.cs.sinfonia.util
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -90,7 +90,7 @@ class KeyCache(context: Context) {
     }
 
     companion object {
-        private const val TAG = "WireGuard/KeyCache"
+        private const val TAG = "Sinfonia/KeyCache"
         private const val PRIVATE_KEY = "privateKey"
         private const val CREATED = "created"
         private const val LIFETIME = 1 * 60 * 60 * 1000    // TODO("Set a reasonable key lifetime")

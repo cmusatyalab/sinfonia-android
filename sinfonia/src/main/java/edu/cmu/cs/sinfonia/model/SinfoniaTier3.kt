@@ -1,10 +1,10 @@
-package com.wireguard.android.model
+package edu.cmu.cs.sinfonia.model
 
+import android.content.Context
 import android.util.Log
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.wireguard.android.Application
-import com.wireguard.android.widget.KeyCache
+import edu.cmu.cs.sinfonia.util.KeyCache
 import okhttp3.OkHttpClient
 import org.http4k.client.OkHttp
 import org.http4k.core.HttpHandler
@@ -14,6 +14,7 @@ import java.net.URL
 import java.util.UUID as _UUID
 
 class SinfoniaTier3(
+        ctx: Context,
         url: String = "https://cmu.findcloudlet.org",
         applicationName: String = "helloworld",
         zeroconf: Boolean = false,
@@ -22,6 +23,7 @@ class SinfoniaTier3(
     private val okHttpClient = OkHttpClient.Builder()
             .followRedirects(true)
             .build()
+    private var ctx: Context
     var tier1Url: URL
         private set
     var applicationName: String
@@ -34,10 +36,12 @@ class SinfoniaTier3(
         private set
     var deployments: List<CloudletDeployment>
         private set
+    // The actual deployment adopted
     var deployment: CloudletDeployment? = null
         private set
 
     init {
+        this.ctx = ctx
         this.tier1Url = URL(url)
         this.applicationName = applicationName
         this.uuid = UUID[applicationName]!!
@@ -47,6 +51,7 @@ class SinfoniaTier3(
     }
 
     fun deploy(): SinfoniaTier3 {
+        Log.i(TAG, "deploy")
         deployments = sinfoniaDeploy()
 
         // Pick the best deployment (first returned for now...)
@@ -60,10 +65,11 @@ class SinfoniaTier3(
     }
 
     private fun sinfoniaDeploy(): List<CloudletDeployment> {
+        Log.i(TAG, "sinfoniaDeploy")
         val deployBase = tier1Url.toString()    // Input type string or URL?
         if (zeroconf) TODO("Zeroconf is not implemented")
 
-        val keyCache = KeyCache(Application.get())
+        val keyCache = KeyCache(ctx)
         val deploymentKeys = keyCache.getKeys(uuid)
         val deploymentUrl = "$deployBase/api/v1/deploy/$uuid/${deploymentKeys.publicKey.toBase64()}"
 
@@ -92,11 +98,11 @@ class SinfoniaTier3(
     }
 
     companion object {
-        private const val TAG = "WireGuard/SinfoniaTier3"
+        private const val TAG = "Sinfonia/SinfoniaTier3"
 
         private val UUID = mapOf(
                 "helloworld" to _UUID.fromString("00000000-0000-0000-0000-000000000000"),
-                "openrtist" to _UUID.fromString("00000000-0000-0000-0000-000000000001")
+                "openrtist" to _UUID.fromString("00000000-0000-0000-0000-000000000000")
         )
     }
 }

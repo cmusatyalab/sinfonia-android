@@ -15,10 +15,6 @@
             type="com.wireguard.android.model.ObservableTunnel" />
 
         <variable
-            name="name"
-            type="String" />
-
-        <variable
             name="sinfonia"
             type="com.wireguard.android.viewmodel.SinfoniaProxy" />
     </data>

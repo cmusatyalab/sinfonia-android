@@ -7,7 +7,7 @@ import androidx.databinding.Bindable
 import androidx.databinding.ObservableArrayList
 import androidx.databinding.ObservableList
 import com.wireguard.android.BR
-import com.wireguard.android.model.SinfoniaTier3
+import edu.cmu.cs.sinfonia.model.SinfoniaTier3
 
 class SinfoniaProxy : BaseObservable, Parcelable {
     val deployments: ObservableList<CloudletDeploymentProxy> = ObservableArrayList()
@@ -58,7 +58,7 @@ class SinfoniaProxy : BaseObservable, Parcelable {
         applicationName = other.applicationName
         uuid = other.uuid.toString()
         zeroconf = other.zeroconf
-        if (other.application != null) application.addAll(other.application!!)
+        application.addAll(other.application!!)
         other.deployments.forEach {
             val proxy = CloudletDeploymentProxy(it)
             deployments.add(proxy)
