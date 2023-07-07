@@ -84,11 +84,8 @@ class SinfoniaTier3(
 
         if (statusCode in 200..299) {
             Log.i(TAG, "Response: $statusCode, $responseBody")
-            val objectMapper = ObjectMapper()
-            val typeRef: TypeReference<List<Map<String, Any>>> = object : TypeReference<List<Map<String, Any>>>() {}
-            val resultMap: List<Map<String, Any>> = objectMapper.readValue(responseBody, typeRef)
-
-            return resultMap.map { deployment: Map<String, Any> ->
+            val result = castResponse(responseBody) ?: return listOf()
+            return result.map { deployment: Map<String, Any> ->
                 CloudletDeployment(application, deploymentKeys, deployment)
             }
         }
@@ -97,9 +94,21 @@ class SinfoniaTier3(
         return listOf()
     }
 
+    private fun castResponse(responseBody: String): List<Map<String, Any>>? {
+        val objectMapper = ObjectMapper()
+        val resultMap: List<Map<String, Any>>
+        try {
+            resultMap = objectMapper.readValue(responseBody, TYPE_REFERENCE)
+        } catch (e: Throwable) {
+            Log.e(TAG, e.toString(),  e)
+            return null
+        }
+        return resultMap
+    }
+
     companion object {
         private const val TAG = "Sinfonia/SinfoniaTier3"
-
+        private val TYPE_REFERENCE: TypeReference<List<Map<String, Any>>> = object : TypeReference<List<Map<String, Any>>>() {}
         private val UUID = mapOf(
                 "helloworld" to _UUID.fromString("00000000-0000-0000-0000-000000000000"),
                 "openrtist" to _UUID.fromString("00000000-0000-0000-0000-000000000000")

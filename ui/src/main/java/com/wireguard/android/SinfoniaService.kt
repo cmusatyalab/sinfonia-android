@@ -65,7 +65,7 @@ class SinfoniaService: Service()  {
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onDestroy() {
-        Log.d(TAG, "onDestroy")
+        Log.i(TAG, "onDestroy")
         super.onDestroy()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
