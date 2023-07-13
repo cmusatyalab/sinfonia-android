@@ -6,8 +6,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
+import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -18,8 +20,10 @@ import androidx.core.app.NotificationCompat
 import com.wireguard.android.activity.MainActivity
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
+import com.wireguard.android.databinding.ObservableSortedKeyedArrayList
 import com.wireguard.android.model.ObservableTunnel
 import com.wireguard.android.util.ErrorMessages
+import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +36,7 @@ class SinfoniaService: Service()  {
     private var sinfonia: SinfoniaTier3? = null
     private var tunnel: ObservableTunnel? = null
     private var binder: IBinder? = MyBinder()
+    private val sinfoniaCallback: SinfoniaCallbacks = SinfoniaCallbacks()
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -41,10 +46,11 @@ class SinfoniaService: Service()  {
             val notification: Notification = createNotification()
             startForeground(NOTIFICATION_ID, notification)
             when (intent.action) {
-                "edu.cmu.cs.sinfonia.action.START" -> handleActionSinfonia(intent)
-                "edu.cmu.cs.sinfonia.action.STOP" -> onDestroy()
+                ACTION_START -> handleActionSinfonia(intent)
+                ACTION_STOP -> onDestroy()
             }
         }
+        registerComponentCallbacks(sinfoniaCallback)
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -66,9 +72,10 @@ class SinfoniaService: Service()  {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onDestroy() {
         Log.i(TAG, "onDestroy")
-        super.onDestroy()
+        unregisterComponentCallbacks(sinfoniaCallback)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+        super.onDestroy()
     }
 
     private fun createNotificationChannel() {
@@ -127,7 +134,8 @@ class SinfoniaService: Service()  {
                         return@launch
                     }
                 } catch (e: Throwable) {
-                    Log.e(TAG, e.toString())
+                    val error = ErrorMessages[e]
+                    Log.e(TAG, error, e)
                 }
             }
             setTunnelStateWithPermissionsResult(tunnel!!, checked)
@@ -151,6 +159,24 @@ class SinfoniaService: Service()  {
         }
     }
 
+    inner class SinfoniaCallbacks : ComponentCallbacks {
+        override fun onConfigurationChanged(newConfig: Configuration) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onLowMemory() {
+            TODO("Not yet implemented")
+        }
+
+        fun onTunnelUp() {
+
+        }
+
+        fun onTunnelError(e: Throwable) {
+
+        }
+    }
+
     private fun handleActionSinfonia(intent: Intent) {
         Log.i(TAG, "handleActionSinfonia")
 
@@ -159,23 +185,25 @@ class SinfoniaService: Service()  {
                     ctx = Application.get(),
                     url = intent.getStringExtra("url") ?: "https://cmu.findcloudlet.org",
                     applicationName = intent.getStringExtra("applicationName") ?: "helloworld",
+                    uuid = intent.getStringExtra("uuid") ?: "00000000-0000-0000-0000-000000000000",
                     zeroconf = intent.getBooleanExtra("zeroconf", false),
                     application = intent.getStringArrayListExtra("application") ?: listOf("com.android.chrome")
             ).deploy()
 
             Log.d(TAG, "handleActionSinfonia deployed: $sinfonia")
 
-            if (createTunnel()) setTunnelState(true) else return@launch
-
-            try {
-                sinfonia?.application?.forEach { application: String -> launchApplication(application) }
-            } catch (e: Throwable) {
-                Log.e(TAG, "Cannot launch application: ${sinfonia?.applicationName}", e)
+            val e = createTunnel()
+            if (e != null) {
+                sinfoniaCallback.onTunnelError(e)
+                return@launch
             }
+
+            setTunnelState(true)
+            sinfoniaCallback.onTunnelUp()
         }
     }
 
-    private suspend fun createTunnel(): Boolean {
+    private suspend fun createTunnel(): Throwable? {
         val newConfig = try {
             sinfonia?.deployment?.tunnelConfig
         } catch (e: Throwable) {
@@ -183,19 +211,38 @@ class SinfoniaService: Service()  {
             val tunnelName = if (tunnel == null) sinfonia?.applicationName else tunnel!!.name
             val message = getString(R.string.config_save_error, tunnelName, error)
             Log.e(TAG, message, e)
-            return false
+            return e
         }
 
         Log.d(TAG, "handleActionSinfonia newConfig: $newConfig")
 
-        try {
-            val manager = Application.getTunnelManager()
-            onTunnelCreated(manager.create(sinfonia?.applicationName!!, newConfig), null)
-        } catch (e: Throwable) {
-            onTunnelCreated(null, e)
-            return false
+        val manager = Application.getTunnelManager()
+        if (!hasSameConfigTunnel(newConfig, manager.getTunnels())) {
+            try {
+                onTunnelCreated(manager.create(sinfonia?.applicationName!!, newConfig), null)
+            } catch (e: Throwable) {
+                onTunnelCreated(null, e)
+                return e
+            }
         }
-        return true
+        return null
+    }
+
+    private fun hasSameConfigTunnel(
+            config: Config?,
+            tunnels: ObservableSortedKeyedArrayList<String, ObservableTunnel>
+    ): Boolean {
+        Log.i(TAG, "hasSameConfigTunnel")
+        if (config == null) return false
+        logConfig(config)
+        for (tunnel in tunnels) {
+            logConfig(tunnel.config!!)
+            if (config == tunnel.config) {
+                this.tunnel = tunnel
+                return true
+            }
+        }
+        return false
     }
 
     private fun launchApplication(application: String) {
@@ -209,8 +256,30 @@ class SinfoniaService: Service()  {
         override fun onReceive(context: Context, intent: Intent?) {
             Log.i(TAG, "Service received broadcast: $intent")
             when (intent?.action) {
-                "edu.cmu.cs.sinfonia.action.STOP" -> onDestroy()
+                ACTION_STOP -> onDestroy()
             }
+        }
+    }
+
+    private fun logConfig(config: Config) {
+        val `interface` = config.`interface`
+        val peers = config.peers
+        Log.d(TAG, "interface/addresses: ${`interface`.addresses}")
+        Log.d(TAG, "interface/dnsServers: ${`interface`.dnsServers}")
+        Log.d(TAG, "interface/excludedApplications: ${`interface`.excludedApplications}")
+        Log.d(TAG, "interface/includedApplications: ${`interface`.includedApplications}")
+        Log.d(TAG, "interface/keyPair: ${`interface`.keyPair}")
+        Log.d(TAG, "interface/keyPair/publicKey: ${`interface`.keyPair.publicKey}")
+        Log.d(TAG, "interface/keyPair/privateKey: ${`interface`.keyPair.privateKey}")
+        Log.d(TAG, "interface/listenPort: ${`interface`.listenPort}")
+        Log.d(TAG, "interface/mtu: ${`interface`.mtu}")
+
+        for (peer in peers) {
+            Log.d(TAG, "peer/allowedIps: ${peer.allowedIps}")
+            Log.d(TAG, "peer/endpoint: ${peer.endpoint}")
+            Log.d(TAG, "peer/persistentKeepalive: ${peer.persistentKeepalive}")
+            Log.d(TAG, "peer/preSharedKey: ${peer.preSharedKey}")
+            Log.d(TAG, "peer/publicKey: ${peer.publicKey}")
         }
     }
 
@@ -219,5 +288,7 @@ class SinfoniaService: Service()  {
         private const val NOTIFICATION_CHANNEL_ID = "SinfoniaForegroundServiceChannel"
         private const val NOTIFICATION_ID = 1
         private const val REQUEST_CODE = 0
+        private const val ACTION_START = "edu.cmu.cs.sinfonia.action.START"
+        private const val ACTION_STOP = "edu.cmu.cs.sinfonia.action.STOP"
     }
 }

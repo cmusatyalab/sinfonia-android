@@ -11,12 +11,13 @@ import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
 import java.net.URL
-import java.util.UUID as _UUID
+import java.util.UUID
 
 class SinfoniaTier3(
         ctx: Context,
         url: String = "https://cmu.findcloudlet.org",
         applicationName: String = "helloworld",
+        uuid: String = "00000000-0000-0000-0000-000000000000",
         zeroconf: Boolean = false,
         application: List<String> = listOf("com.android.chrome")
 ) {
@@ -28,7 +29,7 @@ class SinfoniaTier3(
         private set
     var applicationName: String
         private set
-    var uuid: _UUID
+    var uuid: UUID
         private set
     var zeroconf: Boolean
         private set
@@ -44,7 +45,7 @@ class SinfoniaTier3(
         this.ctx = ctx
         this.tier1Url = URL(url)
         this.applicationName = applicationName
-        this.uuid = UUID[applicationName]!!
+        this.uuid = UUID.fromString(uuid)
         this.zeroconf = zeroconf
         this.application = application
         this.deployments = listOf()
@@ -100,7 +101,7 @@ class SinfoniaTier3(
         try {
             resultMap = objectMapper.readValue(responseBody, TYPE_REFERENCE)
         } catch (e: Throwable) {
-            Log.e(TAG, e.toString(),  e)
+            Log.e(TAG, "castResponse", e)
             return null
         }
         return resultMap
@@ -109,9 +110,5 @@ class SinfoniaTier3(
     companion object {
         private const val TAG = "Sinfonia/SinfoniaTier3"
         private val TYPE_REFERENCE: TypeReference<List<Map<String, Any>>> = object : TypeReference<List<Map<String, Any>>>() {}
-        private val UUID = mapOf(
-                "helloworld" to _UUID.fromString("00000000-0000-0000-0000-000000000000"),
-                "openrtist" to _UUID.fromString("00000000-0000-0000-0000-000000000000")
-        )
     }
 }

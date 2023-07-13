@@ -17,8 +17,6 @@ class CloudletDeployment {
         private set
     var created: String? = null
         private set
-
-
     var state: State
 
     constructor(
@@ -38,18 +36,31 @@ class CloudletDeployment {
         this.created = created
     }
 
-    constructor(application: List<String>, privateKey: KeyPair, resp: Map<String, Any>) {
+    constructor(application: List<String>, keyPair: KeyPair, resp: Map<String, Any>) {
         this.uuid = UUID.fromString(resp["UUID"] as String)
         this.applicationKey = Key.fromBase64(resp["ApplicationKey"] as String)
         this.status = resp["Status"] as String
         this.state = if (status.equals("deployed", ignoreCase = true)) State.DEPLOYED else State.NULL
+        this.tunnelConfig = buildTunnelConfig(resp["TunnelConfig"] as Map<String, *>, keyPair, application)
+        this.deploymentName = resp["DeploymentName"] as String?
+        this.created = resp["Created"] as String?
+    }
 
+    override fun equals(other: Any?): Boolean {
+        if (other !is CloudletDeployment) return false
+        return uuid == other.uuid && tunnelConfig.peers == other.tunnelConfig.peers
+    }
+
+    private fun buildTunnelConfig(
+            tunnelConfig: Map<String, *>,
+            keyPair: KeyPair,
+            application: List<String>
+    ): Config {
         val configBuilder = Config.Builder()
         val interfaceBuilder = Interface.Builder()
         val peerBuilder = Peer.Builder()
 
-        val tunnelConfig = resp["TunnelConfig"] as Map<String, *>
-        interfaceBuilder.setKeyPair(privateKey)
+        interfaceBuilder.setKeyPair(keyPair)
                 .parseAddresses(tunnelConfig["address"] as ArrayList<String>)
                 .parseDnsServers(tunnelConfig["dns"] as ArrayList<String>)
                 .includeApplications(application)
@@ -59,19 +70,18 @@ class CloudletDeployment {
                 .parseAllowedIPs(tunnelConfig["allowedIPs"] as ArrayList<String>)
                 .setPersistentKeepalive(30)
 
-        val config = configBuilder
+        return configBuilder
                 .setInterface(interfaceBuilder.build())
                 .addPeer(peerBuilder.build())
                 .build()
+    }
 
-        this.tunnelConfig = config
-        this.deploymentName = resp["DeploymentName"] as String?
-        this.created = resp["Created"] as String?
+    private fun onDestroy() {
+        state = State.DESTROYED
     }
 
     enum class State {
         DEPLOYED,
-        LAUNCHED,
         DESTROYED,
         NULL
     }

@@ -1,5 +1,6 @@
 package edu.cmu.cs.sinfonia
 
+import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 
@@ -14,11 +15,12 @@ import org.junit.Assert.*
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class SinfoniaTest {
+    // Context of the app under test.
+    private val appContext: Context = InstrumentationRegistry.getInstrumentation().targetContext
+
     @Test
     fun useAppContext() {
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("edu.cmu.cs.sinfonia.test", appContext.packageName)
     }
 }
