@@ -134,13 +134,15 @@
                 <action android:name="com.wireguard.android.action.REFRESH_TUNNEL_STATES" />
                 <action android:name="com.wireguard.android.action.SET_TUNNEL_UP" />
                 <action android:name="com.wireguard.android.action.SET_TUNNEL_DOWN" />
+                <action android:name="com.wireguard.android.action.CREATE_TUNNEL" />
+                <action android:name="com.wireguard.android.action.GET_TUNNEL_STATE" />
             </intent-filter>
         </receiver>
 
         <receiver
-            android:name=".SinfoniaService$IntentReceiver"
-            android:enabled="true"
-            android:exported="true">
+            android:name="edu.cmu.cs.sinfonia.SinfoniaService$IntentReceiver"
+            android:exported="true"
+            android:permission="edu.cmu.cs.sinfonia.permission.CONTROL_TUNNELS">
             <intent-filter>
                 <action android:name="edu.cmu.cs.sinfonia.action.STOP" />
             </intent-filter>
@@ -166,18 +168,14 @@
         </service>
 
         <service
-            android:name=".SinfoniaService"
-            android:enabled="true"
-            android:exported="true">
+            android:name="edu.cmu.cs.sinfonia.SinfoniaService"
+            android:exported="true"
+            android:permission="edu.cmu.cs.sinfonia.permission.WIREGUARD">
             <intent-filter>
                 <action android:name="edu.cmu.cs.sinfonia.action.START" />
+                <action android:name="edu.cmu.cs.sinfonia.action.STOP" />
             </intent-filter>
-
         </service>
-
-        <meta-data
-            android:name="android.content.APP_RESTRICTIONS"
-            android:resource="@xml/app_restrictions" />
     </application>
 
     <queries>

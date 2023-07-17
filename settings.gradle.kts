@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "wireguard-android"
+rootProject.name = "wireguard-android-sinfonia"
 
 include(":tunnel")
 include(":ui")

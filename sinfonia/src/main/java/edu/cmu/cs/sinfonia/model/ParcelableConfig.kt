@@ -2,52 +2,50 @@
  * Copyright © 2017-2023 WireGuard LLC. All Rights Reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.wireguard.android.viewmodel
+package edu.cmu.cs.sinfonia.model
 
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.os.ParcelCompat
-import androidx.databinding.ObservableArrayList
-import androidx.databinding.ObservableList
 import com.wireguard.config.BadConfigException
 import com.wireguard.config.Config
 import com.wireguard.config.Peer
 
-class ConfigProxy : Parcelable {
-    val `interface`: InterfaceProxy
-    val peers: ObservableList<PeerProxy> = ObservableArrayList()
+class ParcelableConfig : Parcelable {
+    val `interface`: ParcelableInterface
+    val peers: ArrayList<ParcelablePeer> = arrayListOf()
 
     private constructor(parcel: Parcel) {
-        Log.d(TAG, parcel.toString())
-        `interface` = ParcelCompat.readParcelable(parcel, InterfaceProxy::class.java.classLoader, InterfaceProxy::class.java) ?: InterfaceProxy()
+        `interface` = ParcelCompat.readParcelable(parcel, ParcelableInterface::class.java.classLoader, ParcelableInterface::class.java) ?: ParcelableInterface()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ParcelCompat.readParcelableList(parcel, peers, PeerProxy::class.java.classLoader, PeerProxy::class.java)
+            ParcelCompat.readParcelableList(parcel, peers, ParcelablePeer::class.java.classLoader, ParcelablePeer::class.java)
         } else {
-            parcel.readTypedList(peers, PeerProxy.CREATOR)
+            parcel.readTypedList(peers, ParcelablePeer.CREATOR)
         }
         peers.forEach { it.bind(this) }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     constructor(other: Config) {
-        `interface` = InterfaceProxy(other.getInterface())
+        `interface` = ParcelableInterface(other.getInterface())
         other.peers.forEach {
-            val proxy = PeerProxy(it)
-            peers.add(proxy)
-            proxy.bind(this)
+            val peer = ParcelablePeer(it)
+            peers.add(peer)
+            peer.bind(this)
         }
     }
 
     constructor() {
-        `interface` = InterfaceProxy()
+        `interface` = ParcelableInterface()
     }
 
-    fun addPeer(): PeerProxy {
-        val proxy = PeerProxy()
-        peers.add(proxy)
-        proxy.bind(this)
-        return proxy
+    fun addPeer(): ParcelablePeer {
+        val peer = ParcelablePeer()
+        peers.add(peer)
+        peer.bind(this)
+        return peer
     }
 
     override fun describeContents() = 0
@@ -71,19 +69,18 @@ class ConfigProxy : Parcelable {
         }
     }
 
-    private class ConfigProxyCreator : Parcelable.Creator<ConfigProxy> {
-        override fun createFromParcel(parcel: Parcel): ConfigProxy {
-            return ConfigProxy(parcel)
+    private class ParcelableConfigCreator : Parcelable.Creator<ParcelableConfig> {
+        override fun createFromParcel(parcel: Parcel): ParcelableConfig {
+            return ParcelableConfig(parcel)
         }
 
-        override fun newArray(size: Int): Array<ConfigProxy?> {
+        override fun newArray(size: Int): Array<ParcelableConfig?> {
             return arrayOfNulls(size)
         }
     }
 
     companion object {
-        private const val TAG = "WireGuard/ConfigProxy"
         @JvmField
-        val CREATOR: Parcelable.Creator<ConfigProxy> = ConfigProxyCreator()
+        val CREATOR: Parcelable.Creator<ParcelableConfig> = ParcelableConfigCreator()
     }
 }

@@ -7,11 +7,15 @@ package com.wireguard.android.model
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.wireguard.android.Application
 import com.wireguard.android.Application.Companion.get
 import com.wireguard.android.Application.Companion.getBackend
 import com.wireguard.android.Application.Companion.getTunnelManager
@@ -24,7 +28,9 @@ import com.wireguard.android.databinding.ObservableSortedKeyedArrayList
 import com.wireguard.android.util.ErrorMessages
 import com.wireguard.android.util.UserKnobs
 import com.wireguard.android.util.applicationScope
+import com.wireguard.android.viewmodel.ConfigProxy
 import com.wireguard.config.Config
+import edu.cmu.cs.sinfonia.model.ParcelableConfig
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +48,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
     private val context: Context = get()
     private val tunnelMap: ObservableSortedKeyedArrayList<String, ObservableTunnel> = ObservableSortedKeyedArrayList(TunnelComparator)
     private var haveLoaded = false
+    private val intentReceiver = IntentReceiver()
 
     private fun addToList(name: String, config: Config?, state: Tunnel.State): ObservableTunnel {
         val tunnel = ObservableTunnel(this, name, config, state)
@@ -99,6 +106,11 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
     }
 
     fun onCreate() {
+        val intentFilter = IntentFilter(REFRESH_TUNNEL_STATES)
+        intentFilter.addAction(SET_TUNNEL_UP)
+        intentFilter.addAction(SET_TUNNEL_DOWN)
+        intentFilter.addAction(CREATE_TUNNEL)
+        LocalBroadcastManager.getInstance(context).registerReceiver(intentReceiver, intentFilter)
         applicationScope.launch {
             try {
                 onTunnelsLoaded(withContext(Dispatchers.IO) { configStore.enumerate() }, withContext(Dispatchers.IO) { getBackend().runningTunnelNames })
@@ -106,6 +118,10 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
                 Log.e(TAG, Log.getStackTraceString(e))
             }
         }
+    }
+
+    fun onDestroy() {
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(intentReceiver)
     }
 
     private fun onTunnelsLoaded(present: Iterable<String>, running: Collection<String>) {
@@ -217,19 +233,38 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
                 val manager = getTunnelManager()
                 if (intent == null) return@launch
                 val action = intent.action ?: return@launch
-                if ("com.wireguard.android.action.REFRESH_TUNNEL_STATES" == action) {
+                if (action == REFRESH_TUNNEL_STATES) {
                     manager.refreshTunnelStates()
                     return@launch
                 }
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || !UserKnobs.allowRemoteControlIntents.first())
-                    return@launch
-                val state: Tunnel.State
-                state = when (action) {
-                    "com.wireguard.android.action.SET_TUNNEL_UP" -> Tunnel.State.UP
-                    "com.wireguard.android.action.SET_TUNNEL_DOWN" -> Tunnel.State.DOWN
+                Log.d(TAG, "onReceive: tunnel created: ${!UserKnobs.allowRemoteControlIntents.first()}")
+//                TODO("How does UserKnobs.allowRemoteControlIntents work?")
+//                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || !UserKnobs.allowRemoteControlIntents.first())
+//                    return@launch
+                val tunnelName = intent.getStringExtra("tunnel") ?: return@launch
+                if (action == CREATE_TUNNEL) {
+                    val parcelableConfig: ParcelableConfig? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra("config", ParcelableConfig::class.java)
+                    } else {
+                        intent.getParcelableExtra("config")
+                    }
+                    val config = parcelableConfig?.resolve()
+                    try {
+                        manager.create(tunnelName, config)
+                    } catch (_: IllegalArgumentException) {
+                    } catch (e: Throwable) {
+                        Log.e(TAG, "IntentReceiver/onReceive", e)
+                        return@launch
+                    }
+                }
+                val state: Tunnel.State = when (action) {
+                    SET_TUNNEL_UP -> Tunnel.State.UP
+                    SET_TUNNEL_DOWN -> Tunnel.State.DOWN
+                    CREATE_TUNNEL ->
+                        if (intent.getBooleanExtra("state", true)) Tunnel.State.UP
+                        else Tunnel.State.DOWN
                     else -> return@launch
                 }
-                val tunnelName = intent.getStringExtra("tunnel") ?: return@launch
                 val tunnels = manager.getTunnels()
                 val tunnel = tunnels[tunnelName] ?: return@launch
                 try {
@@ -251,5 +286,9 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
 
     companion object {
         private const val TAG = "WireGuard/TunnelManager"
+        private const val REFRESH_TUNNEL_STATES = "com.wireguard.android.action.REFRESH_TUNNEL_STATES"
+        private const val SET_TUNNEL_UP = "com.wireguard.android.action.SET_TUNNEL_UP"
+        private const val SET_TUNNEL_DOWN = "com.wireguard.android.action.SET_TUNNEL_DOWN"
+        private const val CREATE_TUNNEL = "com.wireguard.android.action.CREATE_TUNNEL"
     }
 }

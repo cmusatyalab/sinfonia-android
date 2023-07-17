@@ -4,8 +4,10 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+val pkg: String = providers.gradleProperty("sinfoniaPackageName").get()
+
 android {
-    namespace = "edu.cmu.cs.sinfonia"
+    namespace = pkg
     compileSdk = 33
 
     defaultConfig {
@@ -20,6 +22,9 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+        debug {
+
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -33,14 +38,15 @@ android {
 dependencies {
     implementation(project(":tunnel"))
     implementation(libs.core.ktx)
-    implementation(libs.appcompat)
-    implementation(libs.material)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.google.material)
     testImplementation(libs.junit.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation(platform("org.http4k:http4k-bom:4.48.0.0"))
-    implementation("org.http4k:http4k-core")
-    implementation("org.http4k:http4k-client-okhttp")
+    implementation(platform(libs.http4k.bom))
+    implementation(libs.http4k.core)
+    implementation(libs.http4k.client.okhttp)
     implementation(libs.jackson.databind)
     implementation(libs.androidx.security.crypto)
+    implementation(libs.zxing.android.embedded)
 }
