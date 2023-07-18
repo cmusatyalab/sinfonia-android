@@ -16,10 +16,10 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.zxing.client.android.BuildConfig
 import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.model.ParcelableConfig
+import edu.cmu.cs.sinfonia.model.SinfoniaMethods
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +27,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
-class SinfoniaService : Service() {
+class SinfoniaService : Service(), SinfoniaMethods {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(job + Dispatchers.IO)
     private var sinfonia: SinfoniaTier3? = null
-//    private var tunnel: ObservableTunnel? = null
     private var binder: IBinder? = MyBinder()
     private val sinfoniaCallback: SinfoniaCallbacks = SinfoniaCallbacks()
 
@@ -43,7 +42,7 @@ class SinfoniaService : Service() {
             val notification: Notification = createNotification()
             startForeground(NOTIFICATION_ID, notification)
             when (intent.action) {
-                ACTION_START -> handleActionSinfonia(intent)
+                ACTION_START -> deploy(intent)
                 ACTION_STOP -> onDestroy()
             }
         }
@@ -53,7 +52,10 @@ class SinfoniaService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? {
         Log.i(TAG, "onBind: $intent")
-        return binder
+        return when (intent?.action) {
+            ACTION_BIND -> binder
+            else -> null
+        }
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
@@ -106,52 +108,6 @@ class SinfoniaService : Service() {
         return notificationBuilder.build()
     }
 
-//    private fun onTunnelCreated(newTunnel: ObservableTunnel?, throwable: Throwable?) {
-//        Log.i(TAG, "onTunnelCreated")
-//        val ctx = get()
-//        if (throwable == null) {
-//            tunnel = newTunnel
-//            val message = ctx.getString(R.string.tunnel_create_success, tunnel!!.name)
-//            Log.d(TAG, message)
-//        } else {
-//            val error = ErrorMessages[throwable]
-//            val message = ctx.getString(R.string.tunnel_create_error, error)
-//            Log.e(TAG, message, throwable)
-//        }
-//    }
-
-//    private fun setTunnelState(checked: Boolean) {
-//        TODO("replace with LocalBroadcastManager intent implementation")
-//        scope.launch {
-//            if (SinfoniaService.getBackend() is GoBackend) {
-//                try {
-//                    val intent = GoBackend.VpnService.prepare(get())
-//                    if (intent != null) {
-//                        setTunnelStateWithPermissionsResult(tunnel!!, checked)
-//                        startActivity(intent)
-//                        return@launch
-//                    }
-//                } catch (e: Throwable) {
-//                    val error = ErrorMessages[e]
-//                    Log.e(TAG, error, e)
-//                }
-//            }
-//            setTunnelStateWithPermissionsResult(tunnel!!, checked)
-//        }
-//    }
-//
-//    private fun setTunnelStateWithPermissionsResult(tunnel: ObservableTunnel, checked: Boolean) {
-//        TODO("delete this once the localbroadcastmanager is completed")
-//        scope.launch {
-//            try {
-//                tunnel.setStateAsync(Tunnel.State.of(checked))
-//            } catch (e: Throwable) {
-//                val error = ErrorMessages[e]
-//                Log.e(TAG, error, e)
-//            }
-//        }
-//    }
-
     inner class MyBinder: Binder() {
         fun getService(): SinfoniaService {
             return this@SinfoniaService
@@ -177,8 +133,8 @@ class SinfoniaService : Service() {
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    private fun handleActionSinfonia(intent: Intent) {
-        Log.i(TAG, "handleActionSinfonia")
+    override fun deploy(intent: Intent) {
+        Log.i(TAG, "deploy")
 
         scope.launch {
             val applicationName = intent.getStringExtra("applicationName") ?: "helloworld"
@@ -191,7 +147,7 @@ class SinfoniaService : Service() {
                 application = intent.getStringArrayListExtra("application") ?: listOf("com.android.chrome")
             ).deploy()
 
-            Log.d(TAG, "handleActionSinfonia deployed: $sinfonia")
+            Log.d(TAG, "deploy deployed: $sinfonia")
 
             val e = createTunnel(applicationName)
             if (e != null) {
@@ -216,30 +172,21 @@ class SinfoniaService : Service() {
             return e
         }
 
-        Log.d(TAG, "handleActionSinfonia newConfig: $newConfig")
+        Log.d(TAG, "createTunnel newConfig: $newConfig")
 
         if (newConfig == null) return null
 
         val intent = Intent(CREATE_TUNNEL)
+            .setPackage(WIREGUARD_PACKAGE)
             .putExtra("tunnel", tunnelName)
             .putExtra("config", ParcelableConfig(newConfig))
 
         try {
-            LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+            applicationContext.sendBroadcast(intent)
         } catch (e: Throwable) {
             Log.e(TAG, "createTunnel", e)
             return e
         }
-
-//        val manager = SinfoniaService.getTunnelManager()
-//        if (!hasSameConfigTunnel(newConfig, manager.getTunnels())) {
-//            try {
-//                onTunnelCreated(manager.create(sinfonia?.applicationName!!, newConfig), null)
-//            } catch (e: Throwable) {
-//                onTunnelCreated(null, e)
-//                return e
-//            }
-//        }
         return null
     }
 
@@ -258,12 +205,6 @@ class SinfoniaService : Service() {
 //            }
 //        }
 //        return false
-//    }
-//
-//    private fun launchApplication(application: String) {
-//        val packageManager = get().packageManager
-//        val launchIntent = packageManager.getLaunchIntentForPackage(application)
-//        if (launchIntent != null) startActivity(launchIntent) else startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(application)))
 //    }
 
     class IntentReceiver : BroadcastReceiver() {
@@ -299,15 +240,18 @@ class SinfoniaService : Service() {
     }
 
     companion object {
+        const val PACKAGE_NAME = "edu.cmu.cs.sinfonia"
         private lateinit var weakSelf: WeakReference<SinfoniaService>
         private val WIREGUARD_PACKAGE = if (BuildConfig.DEBUG) "com.wireguard.android.debug" else "com.wireguard.android"
         private const val TAG = "Sinfonia/SinfoniaService"
         private const val NOTIFICATION_CHANNEL_ID = "SinfoniaForegroundServiceChannel"
         private const val NOTIFICATION_ID = 1
         private const val REQUEST_CODE = 0
-        private const val ACTION_START = "edu.cmu.cs.sinfonia.action.START"
-        private const val ACTION_STOP = "edu.cmu.cs.sinfonia.action.STOP"
-        private const val CREATE_TUNNEL = "com.wireguard.android.action.CREATE_TUNNEL"
+        const val ACTION_BIND = "edu.cmu.cs.sinfonia.action.BIND"
+        const val ACTION_UNBIND = "edu.cmu.cs.sinfonia.action.UNBIND"
+        const val ACTION_START = "edu.cmu.cs.sinfonia.action.START"
+        const val ACTION_STOP = "edu.cmu.cs.sinfonia.action.STOP"
+        const val CREATE_TUNNEL = "com.wireguard.android.action.CREATE_TUNNEL"
         fun get(): SinfoniaService {
             return weakSelf.get()!!
         }
