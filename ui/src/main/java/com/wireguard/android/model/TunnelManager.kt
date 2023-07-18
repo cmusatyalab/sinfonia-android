@@ -11,11 +11,8 @@ import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.wireguard.android.Application
 import com.wireguard.android.Application.Companion.get
 import com.wireguard.android.Application.Companion.getBackend
 import com.wireguard.android.Application.Companion.getTunnelManager
@@ -28,7 +25,6 @@ import com.wireguard.android.databinding.ObservableSortedKeyedArrayList
 import com.wireguard.android.util.ErrorMessages
 import com.wireguard.android.util.UserKnobs
 import com.wireguard.android.util.applicationScope
-import com.wireguard.android.viewmodel.ConfigProxy
 import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.model.ParcelableConfig
 import kotlinx.coroutines.CompletableDeferred
@@ -110,7 +106,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
         intentFilter.addAction(SET_TUNNEL_UP)
         intentFilter.addAction(SET_TUNNEL_DOWN)
         intentFilter.addAction(CREATE_TUNNEL)
-        LocalBroadcastManager.getInstance(context).registerReceiver(intentReceiver, intentFilter)
+//        LocalBroadcastManager.getInstance(context).registerReceiver(intentReceiver, intentFilter)
         applicationScope.launch {
             try {
                 onTunnelsLoaded(withContext(Dispatchers.IO) { configStore.enumerate() }, withContext(Dispatchers.IO) { getBackend().runningTunnelNames })
@@ -121,7 +117,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
     }
 
     fun onDestroy() {
-        LocalBroadcastManager.getInstance(context).unregisterReceiver(intentReceiver)
+//        LocalBroadcastManager.getInstance(context).unregisterReceiver(intentReceiver)
     }
 
     private fun onTunnelsLoaded(present: Iterable<String>, running: Collection<String>) {
@@ -229,6 +225,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
 
     class IntentReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
+            Log.i(TAG, "onReceive $context, $intent")
             applicationScope.launch {
                 val manager = getTunnelManager()
                 if (intent == null) return@launch

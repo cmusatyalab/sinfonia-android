@@ -139,15 +139,6 @@
             </intent-filter>
         </receiver>
 
-        <receiver
-            android:name="edu.cmu.cs.sinfonia.SinfoniaService$IntentReceiver"
-            android:exported="true"
-            android:permission="edu.cmu.cs.sinfonia.permission.CONTROL_TUNNELS">
-            <intent-filter>
-                <action android:name="edu.cmu.cs.sinfonia.action.STOP" />
-            </intent-filter>
-        </receiver>
-
         <service
             android:name=".QuickTileService"
             android:exported="true"
@@ -165,16 +156,6 @@
             <meta-data
                 android:name="android.service.quicksettings.TOGGLEABLE_TILE"
                 android:value="true" />
-        </service>
-
-        <service
-            android:name="edu.cmu.cs.sinfonia.SinfoniaService"
-            android:exported="true"
-            android:permission="edu.cmu.cs.sinfonia.permission.WIREGUARD">
-            <intent-filter>
-                <action android:name="edu.cmu.cs.sinfonia.action.START" />
-                <action android:name="edu.cmu.cs.sinfonia.action.STOP" />
-            </intent-filter>
         </service>
     </application>
 
