@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.ComponentCallbacks
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -33,6 +34,14 @@ class SinfoniaService : Service(), SinfoniaMethods {
     private var sinfonia: SinfoniaTier3? = null
     private var binder: IBinder? = MyBinder()
     private val sinfoniaCallback: SinfoniaCallbacks = SinfoniaCallbacks()
+
+    override fun onCreate() {
+        super.onCreate()
+        // TODO("Wake up wireguard app if it is killed in order for its dynamically registered IntentReceiver to work")
+//        val intent = packageManager.getLaunchIntentForPackage(WIREGUARD_PACKAGE)
+//            ?.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+//        startActivity(intent)
+    }
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -182,6 +191,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
             .putExtra("config", ParcelableConfig(newConfig))
 
         try {
+            Log.d(TAG, "createTunnel: $intent")
             applicationContext.sendBroadcast(intent)
         } catch (e: Throwable) {
             Log.e(TAG, "createTunnel", e)
@@ -242,7 +252,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
     companion object {
         const val PACKAGE_NAME = "edu.cmu.cs.sinfonia"
         private lateinit var weakSelf: WeakReference<SinfoniaService>
-        private val WIREGUARD_PACKAGE = if (BuildConfig.DEBUG) "com.wireguard.android.debug" else "com.wireguard.android"
+        private const val WIREGUARD_PACKAGE = "com.wireguard.android.debug"
         private const val TAG = "Sinfonia/SinfoniaService"
         private const val NOTIFICATION_CHANNEL_ID = "SinfoniaForegroundServiceChannel"
         private const val NOTIFICATION_ID = 1
