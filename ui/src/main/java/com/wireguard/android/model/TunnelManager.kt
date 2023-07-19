@@ -4,6 +4,7 @@
  */
 package com.wireguard.android.model
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,6 +12,7 @@ import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
 import com.wireguard.android.Application.Companion.get
@@ -102,11 +104,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
     }
 
     fun onCreate() {
-        val intentFilter = IntentFilter(REFRESH_TUNNEL_STATES)
-        intentFilter.addAction(SET_TUNNEL_UP)
-        intentFilter.addAction(SET_TUNNEL_DOWN)
-        intentFilter.addAction(CREATE_TUNNEL)
-//        LocalBroadcastManager.getInstance(context).registerReceiver(intentReceiver, intentFilter)
+        registerReceiver()
         applicationScope.launch {
             try {
                 onTunnelsLoaded(withContext(Dispatchers.IO) { configStore.enumerate() }, withContext(Dispatchers.IO) { getBackend().runningTunnelNames })
@@ -117,7 +115,16 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
     }
 
     fun onDestroy() {
-//        LocalBroadcastManager.getInstance(context).unregisterReceiver(intentReceiver)
+        context.unregisterReceiver(intentReceiver)
+    }
+
+    @SuppressLint("InlinedApi")
+    private fun registerReceiver() {
+        val intentFilter = IntentFilter(REFRESH_TUNNEL_STATES)
+        intentFilter.addAction(SET_TUNNEL_UP)
+        intentFilter.addAction(SET_TUNNEL_DOWN)
+        intentFilter.addAction(CREATE_TUNNEL)
+        context.registerReceiver(intentReceiver, intentFilter, Context.RECEIVER_EXPORTED)
     }
 
     private fun onTunnelsLoaded(present: Iterable<String>, running: Collection<String>) {
