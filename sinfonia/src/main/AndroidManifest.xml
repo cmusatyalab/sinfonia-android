@@ -3,7 +3,4 @@
 
     <uses-permission android:name="com.wireguard.android.permission.CONTROL_TUNNELS" />
 
-    <permission
-        android:name="edu.cmu.cs.sinfonia.permission.BIND_SINFONIA_SERVICE"
-        android:protectionLevel="dangerous" />
 </manifest>

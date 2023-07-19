@@ -37,7 +37,7 @@ android {
 }
 
 dependencies {
-    implementation("com.wireguard.android:tunnel:1.0.20230427")
+    implementation(project(":tunnel"))
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
