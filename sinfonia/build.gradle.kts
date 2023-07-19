@@ -1,10 +1,11 @@
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
+
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.library")
+    id("org.jetbrains.kotlin.android") version "1.8.21"
 }
 
-val pkg: String = providers.gradleProperty("sinfoniaPackageName").get()
+val pkg: String = "edu.cmu.cs.sinfonia"
 
 android {
     namespace = pkg
@@ -36,17 +37,17 @@ android {
 }
 
 dependencies {
-    implementation(project(":tunnel"))
-    implementation(libs.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.google.material)
-    testImplementation(libs.junit.junit)
-    androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.espresso.core)
-    implementation(platform(libs.http4k.bom))
-    implementation(libs.http4k.core)
-    implementation(libs.http4k.client.okhttp)
-    implementation(libs.jackson.databind)
-    implementation(libs.androidx.security.crypto)
-    implementation(libs.zxing.android.embedded)
+    implementation("com.wireguard.android:tunnel:1.0.20230427")
+    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.9.0")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation(platform("org.http4k:http4k-bom:4.48.0.0"))
+    implementation("org.http4k:http4k-core:4.48.0.0")
+    implementation("org.http4k:http4k-client-okhttp:4.48.0.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.1")
+    implementation("androidx.security:security-crypto:1.0.0")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 }

@@ -5,6 +5,7 @@ import com.wireguard.config.Interface
 import com.wireguard.config.Peer
 import com.wireguard.crypto.Key
 import com.wireguard.crypto.KeyPair
+import java.lang.StringBuilder
 import java.util.ArrayList
 import java.util.UUID
 
@@ -61,19 +62,23 @@ class CloudletDeployment {
         val peerBuilder = Peer.Builder()
 
         interfaceBuilder.setKeyPair(keyPair)
-                .parseAddresses(tunnelConfig["address"] as ArrayList<String>)
-                .parseDnsServers(tunnelConfig["dns"] as ArrayList<String>)
+                .parseAddresses(toCharSequence(tunnelConfig["address"] as ArrayList<String>))
+                .parseDnsServers(toCharSequence(tunnelConfig["dns"] as ArrayList<String>))
                 .includeApplications(application)
 
         peerBuilder.parsePublicKey(tunnelConfig["publicKey"] as String)
                 .parseEndpoint(tunnelConfig["endpoint"] as String)
-                .parseAllowedIPs(tunnelConfig["allowedIPs"] as ArrayList<String>)
+                .parseAllowedIPs(toCharSequence(tunnelConfig["allowedIPs"] as ArrayList<String>))
                 .setPersistentKeepalive(30)
 
         return configBuilder
                 .setInterface(interfaceBuilder.build())
                 .addPeer(peerBuilder.build())
                 .build()
+    }
+
+    private fun toCharSequence(arrayList: ArrayList<String>): CharSequence {
+        return arrayList.joinTo(StringBuilder(), ", ").toString()
     }
 
     private fun onDestroy() {
