@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.ComponentCallbacks
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -17,11 +16,11 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.google.zxing.client.android.BuildConfig
 import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.model.ParcelableConfig
 import edu.cmu.cs.sinfonia.model.SinfoniaMethods
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3
+import edu.cmu.cs.sinfonia.wireguard.WireGuardClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,9 +33,11 @@ class SinfoniaService : Service(), SinfoniaMethods {
     private var sinfonia: SinfoniaTier3? = null
     private var binder: IBinder? = MyBinder()
     private val sinfoniaCallback: SinfoniaCallbacks = SinfoniaCallbacks()
+    private val wireGuardClient = WireGuardClient(this)
 
     override fun onCreate() {
         super.onCreate()
+        wireGuardClient.bind()
         // TODO("Wake up wireguard app if it is killed in order for its dynamically registered IntentReceiver to work")
 //        val intent = packageManager.getLaunchIntentForPackage(WIREGUARD_PACKAGE)
 //            ?.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -83,6 +84,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
         unregisterComponentCallbacks(sinfoniaCallback)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+        wireGuardClient.unbind()
         super.onDestroy()
     }
 
@@ -143,30 +145,30 @@ class SinfoniaService : Service(), SinfoniaMethods {
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun deploy(intent: Intent) {
-        Log.i(TAG, "deploy")
-
-        scope.launch {
-            val applicationName = intent.getStringExtra("applicationName") ?: "helloworld"
-            sinfonia = SinfoniaTier3(
-                ctx = get(),
-                url = intent.getStringExtra("url") ?: "https://cmu.findcloudlet.org",
-                applicationName = applicationName,
-                uuid = intent.getStringExtra("uuid") ?: "00000000-0000-0000-0000-000000000000",
-                zeroconf = intent.getBooleanExtra("zeroconf", false),
-                application = intent.getStringArrayListExtra("application") ?: listOf("com.android.chrome")
-            ).deploy()
-
-            Log.d(TAG, "deploy deployed: $sinfonia")
-
-            val e = createTunnel(applicationName)
-            if (e != null) {
-                sinfoniaCallback.onTunnelError(e)
-                return@launch
-            }
-
-//            setTunnelState(true)
-            sinfoniaCallback.onTunnelUp()
-        }
+        Log.i(TAG, "deploy: $intent")
+        wireGuardClient.setTunnelUp("helloworld")
+//        scope.launch {
+//            val applicationName = intent.getStringExtra("applicationName") ?: "helloworld"
+//            sinfonia = SinfoniaTier3(
+//                ctx = get(),
+//                url = intent.getStringExtra("url") ?: "https://cmu.findcloudlet.org",
+//                applicationName = applicationName,
+//                uuid = intent.getStringExtra("uuid") ?: "00000000-0000-0000-0000-000000000000",
+//                zeroconf = intent.getBooleanExtra("zeroconf", false),
+//                application = intent.getStringArrayListExtra("application") ?: listOf("com.android.chrome")
+//            ).deploy()
+//
+//            Log.d(TAG, "deploy deployed: $sinfonia")
+//
+//            val e = createTunnel(applicationName)
+//            if (e != null) {
+//                sinfoniaCallback.onTunnelError(e)
+//                return@launch
+//            }
+//
+////            setTunnelState(true)
+//            sinfoniaCallback.onTunnelUp()
+//        }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -251,8 +253,8 @@ class SinfoniaService : Service(), SinfoniaMethods {
 
     companion object {
         const val PACKAGE_NAME = "edu.cmu.cs.sinfonia"
+        const val WIREGUARD_PACKAGE = "com.wireguard.android.debug"
         private lateinit var weakSelf: WeakReference<SinfoniaService>
-        private const val WIREGUARD_PACKAGE = "com.wireguard.android.debug"
         private const val TAG = "Sinfonia/SinfoniaService"
         private const val NOTIFICATION_CHANNEL_ID = "SinfoniaForegroundServiceChannel"
         private const val NOTIFICATION_ID = 1

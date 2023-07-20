@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="com.wireguard.android.permission.CONTROL_TUNNELS" />
+    <uses-permission android:name="com.wireguard.android.permission.BIND_WIREGUARD_SERVICE" />
 
     <permission
         android:name="edu.cmu.cs.sinfonia.permission.BIND_SINFONIA_SERVICE"

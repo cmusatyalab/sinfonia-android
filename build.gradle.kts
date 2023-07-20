@@ -18,6 +18,14 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
+    buildFeatures {
+        aidl = true
+    }
+
+    sourceSets["main"].aidl {
+        srcDir("src/main/java")
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
