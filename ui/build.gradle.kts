@@ -18,6 +18,10 @@ android {
         buildConfig = true
         dataBinding = true
         viewBinding = true
+        aidl = true
+    }
+    sourceSets["main"].aidl {
+        srcDir("src/main/java")
     }
     namespace = pkg
     defaultConfig {
@@ -68,7 +72,6 @@ android {
 dependencies {
     implementation(project(":tunnel"))
     implementation(project(":sinfonia"))
-    implementation(project(":service"))
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.appcompat)

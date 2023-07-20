@@ -33,6 +33,10 @@
         android:label="@string/permission_label"
         android:protectionLevel="dangerous" />
 
+    <permission
+        android:name="com.wireguard.android.permission.BIND_WIREGUARD_SERVICE"
+        android:protectionLevel="dangerous" />
+
     <application
         android:name=".Application"
         android:allowBackup="false"
@@ -159,11 +163,11 @@
         </service>
 
         <service
-            android:name="com.wireguard.android.service.WireguardService"
+            android:name=".WireGuardService"
             android:exported="true"
-            android:permission="${applicationId}.permission.CONTROL_TUNNELS">
+            android:permission="com.wireguard.android.permission.BIND_WIREGUARD_SERVICE">
             <intent-filter>
-                <action android:name="com.wireguard.android.service.IWireguardService" />
+                <action android:name="com.wireguard.android.service.IWireGuardService" />
             </intent-filter>
         </service>
     </application>

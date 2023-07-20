@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.wireguard.android.Application.Companion.get
 import com.wireguard.android.Application.Companion.getBackend
 import com.wireguard.android.Application.Companion.getTunnelManager
@@ -47,6 +48,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
     private val tunnelMap: ObservableSortedKeyedArrayList<String, ObservableTunnel> = ObservableSortedKeyedArrayList(TunnelComparator)
     private var haveLoaded = false
     private val intentReceiver = IntentReceiver()
+    private lateinit var localBroadcastManager: LocalBroadcastManager
 
     private fun addToList(name: String, config: Config?, state: Tunnel.State): ObservableTunnel {
         val tunnel = ObservableTunnel(this, name, config, state)
@@ -104,6 +106,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
     }
 
     fun onCreate() {
+        localBroadcastManager = LocalBroadcastManager.getInstance(context)
         registerReceiver()
         applicationScope.launch {
             try {
@@ -115,7 +118,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
     }
 
     fun onDestroy() {
-        context.unregisterReceiver(intentReceiver)
+        localBroadcastManager.unregisterReceiver(intentReceiver)
     }
 
     @SuppressLint("InlinedApi")
@@ -124,7 +127,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
         intentFilter.addAction(SET_TUNNEL_UP)
         intentFilter.addAction(SET_TUNNEL_DOWN)
         intentFilter.addAction(CREATE_TUNNEL)
-        context.registerReceiver(intentReceiver, intentFilter, Context.RECEIVER_EXPORTED)
+        localBroadcastManager.registerReceiver(intentReceiver, intentFilter)
     }
 
     private fun onTunnelsLoaded(present: Iterable<String>, running: Collection<String>) {
@@ -274,6 +277,7 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
                 try {
                     manager.setTunnelState(tunnel, state)
                 } catch (e: Throwable) {
+                    Log.e(TAG, "onReceive", e)
                     Toast.makeText(context, ErrorMessages[e], Toast.LENGTH_LONG).show()
                 }
             }
