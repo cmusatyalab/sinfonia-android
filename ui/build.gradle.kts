@@ -68,6 +68,7 @@ android {
 dependencies {
     implementation(project(":tunnel"))
     implementation(project(":sinfonia"))
+    implementation(project(":service"))
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.appcompat)

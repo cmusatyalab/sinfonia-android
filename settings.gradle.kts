@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":service")
 include(":sinfonia")
 
 
