@@ -17,7 +17,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.wireguard.config.Config
-import edu.cmu.cs.sinfonia.model.ParcelableConfig
+import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
 import edu.cmu.cs.sinfonia.model.SinfoniaMethods
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3
 import edu.cmu.cs.sinfonia.wireguard.WireGuardClient
@@ -34,6 +34,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
     private var binder: IBinder? = MyBinder()
     private val sinfoniaCallback: SinfoniaCallbacks = SinfoniaCallbacks()
     private val wireGuardClient = WireGuardClient(this)
+
 
     override fun onCreate() {
         super.onCreate()
@@ -146,29 +147,28 @@ class SinfoniaService : Service(), SinfoniaMethods {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun deploy(intent: Intent) {
         Log.i(TAG, "deploy: $intent")
-        wireGuardClient.setTunnelUp("helloworld")
-//        scope.launch {
-//            val applicationName = intent.getStringExtra("applicationName") ?: "helloworld"
-//            sinfonia = SinfoniaTier3(
-//                ctx = get(),
-//                url = intent.getStringExtra("url") ?: "https://cmu.findcloudlet.org",
-//                applicationName = applicationName,
-//                uuid = intent.getStringExtra("uuid") ?: "00000000-0000-0000-0000-000000000000",
-//                zeroconf = intent.getBooleanExtra("zeroconf", false),
-//                application = intent.getStringArrayListExtra("application") ?: listOf("com.android.chrome")
-//            ).deploy()
-//
-//            Log.d(TAG, "deploy deployed: $sinfonia")
-//
-//            val e = createTunnel(applicationName)
-//            if (e != null) {
-//                sinfoniaCallback.onTunnelError(e)
-//                return@launch
-//            }
-//
-////            setTunnelState(true)
-//            sinfoniaCallback.onTunnelUp()
-//        }
+        scope.launch {
+            val applicationName = intent.getStringExtra("applicationName") ?: "helloworld"
+            sinfonia = SinfoniaTier3(
+                ctx = get(),
+                url = intent.getStringExtra("url") ?: "https://cmu.findcloudlet.org",
+                applicationName = applicationName,
+                uuid = intent.getStringExtra("uuid") ?: "00000000-0000-0000-0000-000000000000",
+                zeroconf = intent.getBooleanExtra("zeroconf", false),
+                application = intent.getStringArrayListExtra("application") ?: listOf("com.android.chrome")
+            ).deploy()
+
+            Log.d(TAG, "deploy deployed: $sinfonia")
+
+            val e = createTunnel(applicationName)
+            if (e != null) {
+                sinfoniaCallback.onTunnelError(e)
+                return@launch
+            }
+
+//            setTunnelState(true)
+            sinfoniaCallback.onTunnelUp()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -187,14 +187,8 @@ class SinfoniaService : Service(), SinfoniaMethods {
 
         if (newConfig == null) return null
 
-        val intent = Intent(CREATE_TUNNEL)
-            .setPackage(WIREGUARD_PACKAGE)
-            .putExtra("tunnel", tunnelName)
-            .putExtra("config", ParcelableConfig(newConfig))
-
         try {
-            Log.d(TAG, "createTunnel: $intent")
-            applicationContext.sendBroadcast(intent)
+            wireGuardClient.createTunnel(tunnelName, ParcelableConfig(newConfig))
         } catch (e: Throwable) {
             Log.e(TAG, "createTunnel", e)
             return e

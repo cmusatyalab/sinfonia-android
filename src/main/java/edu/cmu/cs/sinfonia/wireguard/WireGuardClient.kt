@@ -23,13 +23,15 @@ class WireGuardClient(private val context: Context) {
         }
     }
 
-    fun bind() {
+    fun bind(): Boolean {
         val intent = Intent(ACTION_BIND_WIREGUARD_SERVICE).setPackage(WIREGUARD_PACKAGE)
         try {
             context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         } catch (e: Throwable) {
-            Log.e(TAG, "bind fail", e);
+            Log.e(TAG, "bind fail", e)
+            return false
         }
+        return true
     }
 
     fun unbind() {
@@ -40,8 +42,8 @@ class WireGuardClient(private val context: Context) {
         mService?.refreshTunnels()
     }
 
-    fun createTunnel(tunnelName: String) {
-        mService?.createTunnel(tunnelName)
+    fun createTunnel(tunnelName: String, parcelableConfig: ParcelableConfig) {
+        mService?.createTunnel(tunnelName, parcelableConfig)
     }
 
     fun destroyTunnel(tunnelName: String) {
@@ -54,6 +56,12 @@ class WireGuardClient(private val context: Context) {
 
     fun setTunnelDown(tunnelName: String) {
         mService?.setTunnelDown(tunnelName)
+    }
+
+    fun getTunnnelConfig(tunnelName: String): ParcelableConfig {
+        val parcelableConfig = ParcelableConfig()
+        mService?.getTunnelConfig(tunnelName, parcelableConfig)
+        return parcelableConfig
     }
 
     companion object {

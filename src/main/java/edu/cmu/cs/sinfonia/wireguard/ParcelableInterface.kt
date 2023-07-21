@@ -2,7 +2,7 @@
  * Copyright © 2017-2023 WireGuard LLC. All Rights Reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package edu.cmu.cs.sinfonia.model
+package edu.cmu.cs.sinfonia.wireguard
 
 import android.os.Build
 import android.os.Parcel
@@ -90,6 +90,21 @@ class ParcelableInterface : Parcelable {
         dest.writeString(listenPort)
         dest.writeString(mtu)
         dest.writeString(privateKey)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun overwrite(`interface`: Interface) {
+        excludedApplications.clear()
+        includedApplications.clear()
+        addresses = Attribute.join(`interface`.addresses)
+        val dnsServerStrings = `interface`.dnsServers.map { it.hostAddress }.plus(`interface`.dnsSearchDomains)
+        dnsServers = Attribute.join(dnsServerStrings)
+        excludedApplications.addAll(`interface`.excludedApplications)
+        includedApplications.addAll(`interface`.includedApplications)
+        listenPort = `interface`.listenPort.map { it.toString() }.orElse("")
+        mtu = `interface`.mtu.map { it.toString() }.orElse("")
+        val keyPair = `interface`.keyPair
+        privateKey = keyPair.privateKey.toBase64()
     }
 
     private class ParcelableInterfaceCreator : Parcelable.Creator<ParcelableInterface> {

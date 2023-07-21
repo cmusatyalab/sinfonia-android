@@ -2,7 +2,7 @@
  * Copyright © 2017-2023 WireGuard LLC. All Rights Reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package edu.cmu.cs.sinfonia.model
+package edu.cmu.cs.sinfonia.wireguard
 
 import android.os.Build
 import android.os.Parcel
