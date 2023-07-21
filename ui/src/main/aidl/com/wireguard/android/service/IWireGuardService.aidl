@@ -2,6 +2,7 @@
 package com.wireguard.android.service;
 
 // Declare any non-default types here with import statements
+import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig;
 
 interface IWireGuardService {
     /**
@@ -13,11 +14,13 @@ interface IWireGuardService {
 
     void refreshTunnels();
 
-    void createTunnel(String tunnelName);
+    void createTunnel(String tunnelName, in ParcelableConfig parcelableConfig);
 
     void destroyTunnel(String tunnelName);
 
     void setTunnelUp(String tunnelName);
 
     void setTunnelDown(String tunnelName);
+
+    void getTunnelConfig(String tunnelName, out ParcelableConfig parcelableConfig);
 }

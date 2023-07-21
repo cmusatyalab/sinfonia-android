@@ -2,14 +2,17 @@ package com.wireguard.android
 
 import android.app.Service
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.wireguard.android.Application.Companion.getTunnelManager
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.android.model.TunnelManager
 import com.wireguard.android.service.IWireGuardService
 import com.wireguard.android.util.applicationScope
+import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
 import kotlinx.coroutines.launch
 
 class WireGuardService : Service() {
@@ -34,8 +37,19 @@ class WireGuardService : Service() {
             localBroadcastManager.sendBroadcast(intent)
         }
 
-        override fun createTunnel(tunnelName: String) {
+        override fun createTunnel(tunnelName: String, parcelableConfig: ParcelableConfig) {
             Log.i(TAG, "createTunnel: $tunnelName")
+            applicationScope.launch {
+                val config = parcelableConfig.resolve()
+                try {
+                    tunnelManager.create(tunnelName, config)
+                } catch (_: IllegalArgumentException) {
+                } catch (e: Throwable) {
+                    Log.e(TAG, "createTunnel", e)
+                    return@launch
+                }
+                setTunnelUp(tunnelName)
+            }
         }
 
         override fun destroyTunnel(tunnelName: String) {
@@ -80,6 +94,17 @@ class WireGuardService : Service() {
                 if (newState != Tunnel.State.DOWN) Log.d(TAG, "setTunnelDown: $newState")
             }
         }
+
+        @RequiresApi(Build.VERSION_CODES.N)
+        override fun getTunnelConfig(tunnelName: String, parcelableConfig: ParcelableConfig) {
+            Log.i(TAG, "getTunnelConfig: $tunnelName")
+            applicationScope.launch {
+                val tunnels = tunnelManager.getTunnels()
+                val tunnel = tunnels[tunnelName] ?: return@launch
+                val config = tunnelManager.getTunnelConfig(tunnel)
+                parcelableConfig.overwrite(config)
+            }
+        }
     }
 
     override fun onCreate() {
@@ -91,6 +116,16 @@ class WireGuardService : Service() {
     override fun onBind(intent: Intent?): IBinder {
         Log.i(TAG, "onBind: $intent")
         return binder
+    }
+
+    override fun onRebind(intent: Intent?) {
+        Log.i(TAG, "onRebind: $intent")
+        super.onRebind(intent)
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.i(TAG, "onUnbind: $intent")
+        return super.onUnbind(intent)
     }
 
     companion object {

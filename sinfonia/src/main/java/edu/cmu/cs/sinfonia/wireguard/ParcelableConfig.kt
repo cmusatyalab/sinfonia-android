@@ -2,7 +2,7 @@
  * Copyright © 2017-2023 WireGuard LLC. All Rights Reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package edu.cmu.cs.sinfonia.model
+package edu.cmu.cs.sinfonia.wireguard
 
 import android.os.Build
 import android.os.Parcel
@@ -66,6 +66,21 @@ class ParcelableConfig : Parcelable {
             dest.writeParcelableList(peers, flags)
         } else {
             dest.writeTypedList(peers)
+        }
+    }
+
+    fun readFromParcel(parcel: Parcel) {
+        ParcelableConfig(parcel)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun overwrite(config: Config) {
+        `interface`.overwrite(config.`interface`)
+        peers.clear()
+        config.peers.forEach {
+            val peer = ParcelablePeer(it)
+            peers.add(peer)
+            peer.bind(this)
         }
     }
 

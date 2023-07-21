@@ -12,7 +12,6 @@ import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -29,7 +28,7 @@ import com.wireguard.android.util.ErrorMessages
 import com.wireguard.android.util.UserKnobs
 import com.wireguard.android.util.applicationScope
 import com.wireguard.config.Config
-import edu.cmu.cs.sinfonia.model.ParcelableConfig
+import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
