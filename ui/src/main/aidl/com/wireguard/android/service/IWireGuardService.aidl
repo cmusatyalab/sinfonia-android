@@ -18,9 +18,9 @@ interface IWireGuardService {
 
     void destroyTunnel(String tunnelName);
 
-    void setTunnelUp(String tunnelName);
+    boolean setTunnelUp(String tunnelName);
 
-    void setTunnelDown(String tunnelName);
+    boolean setTunnelDown(String tunnelName);
 
-    void getTunnelConfig(String tunnelName, out ParcelableConfig parcelableConfig);
+    ParcelableConfig getTunnelConfig(String tunnelName);
 }

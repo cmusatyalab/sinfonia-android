@@ -11,11 +11,16 @@ import com.wireguard.android.Application.Companion.getTunnelManager
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.android.model.TunnelManager
 import com.wireguard.android.service.IWireGuardService
-import com.wireguard.android.util.applicationScope
 import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class WireGuardService : Service() {
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(job + Dispatchers.IO)
     private lateinit var tunnelManager: TunnelManager
     private lateinit var localBroadcastManager: LocalBroadcastManager
 
@@ -39,7 +44,7 @@ class WireGuardService : Service() {
 
         override fun createTunnel(tunnelName: String, parcelableConfig: ParcelableConfig) {
             Log.i(TAG, "createTunnel: $tunnelName")
-            applicationScope.launch {
+            scope.launch {
                 val config = parcelableConfig.resolve()
                 try {
                     tunnelManager.create(tunnelName, config)
@@ -54,7 +59,7 @@ class WireGuardService : Service() {
 
         override fun destroyTunnel(tunnelName: String) {
             Log.i(TAG, "destroyTunnel: $tunnelName")
-            applicationScope.launch {
+            scope.launch {
                 val tunnels = tunnelManager.getTunnels()
                 val tunnel = tunnels[tunnelName] ?: return@launch
                 try {
@@ -65,11 +70,12 @@ class WireGuardService : Service() {
             }
         }
 
-        override fun setTunnelUp(tunnelName: String) {
+        override fun setTunnelUp(tunnelName: String): Boolean {
             Log.i(TAG, "setTunnelUp: $tunnelName")
-            applicationScope.launch {
+            var success = false
+            runBlocking {
                 val tunnels = tunnelManager.getTunnels()
-                val tunnel = tunnels[tunnelName] ?: return@launch
+                val tunnel = tunnels[tunnelName] ?: return@runBlocking
                 var newState: Tunnel.State = Tunnel.State.TOGGLE
                 try {
                     newState = tunnelManager.setTunnelState(tunnel, Tunnel.State.UP)
@@ -77,14 +83,17 @@ class WireGuardService : Service() {
                     Log.e(TAG, "setTunnelUp", e)
                 }
                 if (newState != Tunnel.State.UP) Log.d(TAG, "setTunnelUp: $newState")
+                success = true
             }
+            return success
         }
 
-        override fun setTunnelDown(tunnelName: String) {
+        override fun setTunnelDown(tunnelName: String): Boolean {
             Log.i(TAG, "setTunnelDown: $tunnelName")
-            applicationScope.launch {
+            var success = false
+            runBlocking {
                 val tunnels = tunnelManager.getTunnels()
-                val tunnel = tunnels[tunnelName] ?: return@launch
+                val tunnel = tunnels[tunnelName] ?: return@runBlocking
                 var newState: Tunnel.State = Tunnel.State.TOGGLE
                 try {
                     newState = tunnelManager.setTunnelState(tunnel, Tunnel.State.DOWN)
@@ -92,18 +101,22 @@ class WireGuardService : Service() {
                     Log.e(TAG, "setTunnelDown", e)
                 }
                 if (newState != Tunnel.State.DOWN) Log.d(TAG, "setTunnelDown: $newState")
+                success = true
             }
+            return success
         }
 
         @RequiresApi(Build.VERSION_CODES.N)
-        override fun getTunnelConfig(tunnelName: String, parcelableConfig: ParcelableConfig) {
+        override fun getTunnelConfig(tunnelName: String): ParcelableConfig? {
             Log.i(TAG, "getTunnelConfig: $tunnelName")
-            applicationScope.launch {
+            var parcelableConfig: ParcelableConfig? = null
+            runBlocking {
                 val tunnels = tunnelManager.getTunnels()
-                val tunnel = tunnels[tunnelName] ?: return@launch
+                val tunnel = tunnels[tunnelName] ?: return@runBlocking
                 val config = tunnelManager.getTunnelConfig(tunnel)
-                parcelableConfig.overwrite(config)
+                parcelableConfig = ParcelableConfig(config)
             }
+            return parcelableConfig
         }
     }
 
@@ -111,6 +124,11 @@ class WireGuardService : Service() {
         super.onCreate()
         tunnelManager = getTunnelManager()
         localBroadcastManager = LocalBroadcastManager.getInstance(applicationContext)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
     }
 
     override fun onBind(intent: Intent?): IBinder {
