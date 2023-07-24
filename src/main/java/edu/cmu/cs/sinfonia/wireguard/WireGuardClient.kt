@@ -50,18 +50,16 @@ class WireGuardClient(private val context: Context) {
         mService?.destroyTunnel(tunnelName)
     }
 
-    fun setTunnelUp(tunnelName: String) {
-        mService?.setTunnelUp(tunnelName)
+    fun setTunnelUp(tunnelName: String): Boolean {
+        return mService?.setTunnelUp(tunnelName)!!
     }
 
-    fun setTunnelDown(tunnelName: String) {
-        mService?.setTunnelDown(tunnelName)
+    fun setTunnelDown(tunnelName: String): Boolean {
+        return mService?.setTunnelDown(tunnelName)!!
     }
 
-    fun getTunnnelConfig(tunnelName: String): ParcelableConfig {
-        val parcelableConfig = ParcelableConfig()
-        mService?.getTunnelConfig(tunnelName, parcelableConfig)
-        return parcelableConfig
+    fun getTunnnelConfig(tunnelName: String): ParcelableConfig? {
+        return mService?.getTunnelConfig(tunnelName)
     }
 
     companion object {

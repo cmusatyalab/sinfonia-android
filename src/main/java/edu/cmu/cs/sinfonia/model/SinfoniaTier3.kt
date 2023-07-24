@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import edu.cmu.cs.sinfonia.model.SinfoniaTier3.Companion.TYPE_REFERENCE
 import edu.cmu.cs.sinfonia.util.KeyCache
 import okhttp3.OkHttpClient
 import org.http4k.client.OkHttp
@@ -16,8 +17,8 @@ import java.util.UUID
 class SinfoniaTier3(
         ctx: Context,
         url: String = "https://cmu.findcloudlet.org",
-        applicationName: String = "helloworld",
-        uuid: String = "00000000-0000-0000-0000-000000000000",
+        applicationName: String?,
+        uuid: String?,
         zeroconf: Boolean = false,
         application: List<String> = listOf("com.android.chrome")
 ) {
@@ -27,9 +28,9 @@ class SinfoniaTier3(
     private var ctx: Context
     var tier1Url: URL
         private set
-    var applicationName: String
+    var applicationName: String?
         private set
-    var uuid: UUID
+    var uuid: UUID?
         private set
     var zeroconf: Boolean
         private set
@@ -45,7 +46,12 @@ class SinfoniaTier3(
         this.ctx = ctx
         this.tier1Url = URL(url)
         this.applicationName = applicationName
-        this.uuid = UUID.fromString(uuid)
+        this.uuid = try {
+            UUID.fromString(uuid)
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "init: uuid", e)
+            null
+        }
         this.zeroconf = zeroconf
         this.application = application
         this.deployments = listOf()
@@ -67,12 +73,13 @@ class SinfoniaTier3(
 
     private fun sinfoniaDeploy(): List<CloudletDeployment> {
         Log.i(TAG, "sinfoniaDeploy")
-        val deployBase = tier1Url.toString()    // Input type string or URL?
+        if (uuid == null) return listOf()
+
         if (zeroconf) TODO("Zeroconf is not implemented")
 
         val keyCache = KeyCache(ctx)
-        val deploymentKeys = keyCache.getKeys(uuid)
-        val deploymentUrl = "$deployBase/api/v1/deploy/$uuid/${deploymentKeys.publicKey.toBase64()}"
+        val deploymentKeys = keyCache.getKeys(uuid!!)
+        val deploymentUrl = "$tier1Url/api/v1/deploy/$uuid/${deploymentKeys.publicKey.toBase64()}"
 
         Log.d(TAG, "post deploymentUrl: $deploymentUrl")
 
@@ -85,7 +92,7 @@ class SinfoniaTier3(
 
         if (statusCode in 200..299) {
             Log.i(TAG, "Response: $statusCode, $responseBody")
-            val result = castResponse(responseBody) ?: return listOf()
+            val result = castResponse(responseBody)
             return result.map { deployment: Map<String, Any> ->
                 CloudletDeployment(application, deploymentKeys, deployment)
             }
@@ -95,16 +102,28 @@ class SinfoniaTier3(
         return listOf()
     }
 
-    private fun castResponse(responseBody: String): List<Map<String, Any>>? {
+    private fun castResponse(responseBody: String): List<Map<String, Any>> {
         val objectMapper = ObjectMapper()
-        val resultMap: List<Map<String, Any>>
-        try {
-            resultMap = objectMapper.readValue(responseBody, TYPE_REFERENCE)
-        } catch (e: Throwable) {
-            Log.e(TAG, "castResponse", e)
-            return null
+        return objectMapper.readValue(responseBody, TYPE_REFERENCE)
+    }
+
+    class DeployException(private val reason: Reason, vararg format: Any?) : Exception() {
+        private val formatArray: Array<out Any?> = format
+
+        fun getFormat(): Array<out Any?> {
+            return formatArray
         }
-        return resultMap
+
+        fun getReason(): Reason {
+            return reason
+        }
+
+        enum class Reason {
+            INVALID_TIER_ONE_URL,
+            INVALID_UUID,
+            UUID_NOT_FOUND,
+            CANNOT_CAST_RESPONSE
+        }
     }
 
     companion object {

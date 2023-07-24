@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="deploy_error_reason_invalid_tier_one_url">Invalid tier 1 url</string>
+    <string name="deploy_error_reason_invalid_uuid">Invalid uuid</string>
+    <string name="deploy_error_reason_uuid_not_found">Uuid not found</string>
+    <string name="deploy_error_reason_cannot_cast_response">Cannot cast response</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="generic_error">Unknown “%s” error</string>
+    <string name="deploy_success">Successfully deployed “%s” backend</string>
+    <string name="deploy_error">Cannot deploy backend for “%1$s”: %2$s</string>
+    <string name="tunnel_create_success">Successfully created tunnel “%s”</string>
+    <string name="tunnel_create_error">Unable to create tunnel: %s</string>
+    <string name="tunnel_error_reason_already_exist">Tunnel “%s” already exists</string>
+</resources>

@@ -14,12 +14,14 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
 import edu.cmu.cs.sinfonia.model.SinfoniaMethods
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3
+import edu.cmu.cs.sinfonia.util.ErrorMessages
 import edu.cmu.cs.sinfonia.wireguard.WireGuardClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -87,6 +89,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
         stopSelf()
         wireGuardClient.unbind()
         super.onDestroy()
+        job.cancel()
     }
 
     private fun createNotificationChannel() {
@@ -135,12 +138,36 @@ class SinfoniaService : Service(), SinfoniaMethods {
             TODO("Not yet implemented")
         }
 
-        fun onTunnelUp() {
-
+        fun onDeploy(applicationName: String, throwable: Throwable?) {
+            val ctx = get()
+            scope.launch(Dispatchers.Main.immediate) {
+                if (throwable == null) {
+                    val message = ctx.getString(R.string.deploy_success, applicationName)
+                    Log.d(TAG, message)
+                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                } else {
+                    val error = ErrorMessages[throwable]
+                    val message = ctx.getString(R.string.deploy_error, applicationName, error)
+                    Log.e(TAG, message, throwable)
+                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
 
-        fun onTunnelError(e: Throwable) {
-
+        fun onTunnelCreated(tunnelName: String, throwable: Throwable?) {
+            val ctx = get()
+            scope.launch(Dispatchers.Main.immediate) {
+                if (throwable == null) {
+                    val message = ctx.getString(R.string.tunnel_create_success, tunnelName)
+                    Log.d(TAG, message)
+                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                } else {
+                    val error = ErrorMessages[throwable]
+                    val message = ctx.getString(R.string.tunnel_create_error, error)
+                    Log.e(TAG, message, throwable)
+                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -149,25 +176,30 @@ class SinfoniaService : Service(), SinfoniaMethods {
         Log.i(TAG, "deploy: $intent")
         scope.launch {
             val applicationName = intent.getStringExtra("applicationName") ?: "helloworld"
-            sinfonia = SinfoniaTier3(
-                ctx = get(),
-                url = intent.getStringExtra("url") ?: "https://cmu.findcloudlet.org",
-                applicationName = applicationName,
-                uuid = intent.getStringExtra("uuid") ?: "00000000-0000-0000-0000-000000000000",
-                zeroconf = intent.getBooleanExtra("zeroconf", false),
-                application = intent.getStringArrayListExtra("application") ?: listOf("com.android.chrome")
-            ).deploy()
-
-            Log.d(TAG, "deploy deployed: $sinfonia")
-
-            val e = createTunnel(applicationName)
-            if (e != null) {
-                sinfoniaCallback.onTunnelError(e)
+            try {
+                sinfonia = SinfoniaTier3(
+                    ctx = get(),
+                    url = intent.getStringExtra("url") ?: "https://cmu.findcloudlet.org",
+                    applicationName = applicationName,
+                    uuid = intent.getStringExtra("uuid"),
+                    zeroconf = intent.getBooleanExtra("zeroconf", false),
+                    application = intent.getStringArrayListExtra("application")
+                        ?: listOf("com.android.chrome")
+                ).deploy()
+            } catch (e: Throwable) {
+                sinfoniaCallback.onDeploy(applicationName, e)
                 return@launch
             }
 
-//            setTunnelState(true)
-            sinfoniaCallback.onTunnelUp()
+            sinfoniaCallback.onDeploy(applicationName, null)
+
+            try {
+                createTunnel(applicationName)
+            } catch (e: Throwable) {
+                sinfoniaCallback.onTunnelCreated(applicationName, e)
+                return@launch
+            }
+            sinfoniaCallback.onTunnelCreated(applicationName, null)
         }
     }
 

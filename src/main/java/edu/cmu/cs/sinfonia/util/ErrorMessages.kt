@@ -16,11 +16,23 @@ import com.wireguard.config.InetNetwork
 import com.wireguard.config.ParseException
 import com.wireguard.crypto.Key
 import com.wireguard.crypto.KeyFormatException
+import edu.cmu.cs.sinfonia.R
 //import edu.cmu.cs.sinfonia.R
 import edu.cmu.cs.sinfonia.SinfoniaService
+import edu.cmu.cs.sinfonia.model.SinfoniaTier3
+import edu.cmu.cs.sinfonia.model.SinfoniaTier3.DeployException
 import java.net.InetAddress
 
 object ErrorMessages {
+    private val DE_REASON_MAP = mapOf(
+        DeployException.Reason.INVALID_TIER_ONE_URL to R.string.deploy_error_reason_invalid_tier_one_url,
+        DeployException.Reason.INVALID_UUID to R.string.deploy_error_reason_invalid_uuid,
+        DeployException.Reason.UUID_NOT_FOUND to R.string.deploy_error_reason_uuid_not_found,
+        DeployException.Reason.CANNOT_CAST_RESPONSE to R.string.deploy_error_reason_cannot_cast_response
+    )
+    private val TE_REASON_MAP = mapOf(
+        TunnelException.Reason.ALREADY_EXIST to R.string.tunnel_error_reason_already_exist,
+    )
 //    private val BCE_REASON_MAP = mapOf(
 //        BadConfigException.Reason.INVALID_KEY to R.string.bad_config_reason_invalid_key,
 //        BadConfigException.Reason.INVALID_NUMBER to R.string.bad_config_reason_invalid_number,
@@ -67,10 +79,12 @@ object ErrorMessages {
 //
     operator fun get(throwable: Throwable?): String {
         val resources = SinfoniaService.get().resources
-        TODO("Not yet implemented")
-//        if (throwable == null) return resources.getString(R.string.unknown_error)
-//        val rootCause = rootCause(throwable)
-//        return when {
+        if (throwable == null) return resources.getString(R.string.unknown_error)
+        val rootCause = rootCause(throwable)
+        return when {
+            rootCause is DeployException -> {
+                resources.getString(DE_REASON_MAP.getValue(rootCause.getReason()), *rootCause.getFormat())
+            }
 //            rootCause is BadConfigException -> {
 //                val reason = getBadConfigExceptionReason(resources, rootCause)
 //                val context = if (rootCause.location == BadConfigException.Location.TOP_LEVEL) {
@@ -97,16 +111,16 @@ object ErrorMessages {
 //            rootCause is ChecksumException -> {
 //                resources.getString(R.string.error_qr_checksum)
 //            }
-//
-//            rootCause.localizedMessage != null -> {
-//                rootCause.localizedMessage!!
-//            }
-//
-//            else -> {
-//                val errorType = rootCause.javaClass.simpleName
-//                resources.getString(R.string.generic_error, errorType)
-//            }
-//        }
+
+            rootCause.localizedMessage != null -> {
+                rootCause.localizedMessage!!
+            }
+
+            else -> {
+                val errorType = rootCause.javaClass.simpleName
+                resources.getString(R.string.generic_error, errorType)
+            }
+        }
     }
 //
 //    private fun getBadConfigExceptionExplanation(
@@ -147,9 +161,6 @@ object ErrorMessages {
     private fun rootCause(throwable: Throwable): Throwable {
         var cause = throwable
         while (cause.cause != null) {
-            if (cause is BadConfigException || cause is BackendException ||
-                cause is RootShellException
-            ) break
             val nextCause = cause.cause!!
             if (nextCause is RemoteException) break
             cause = nextCause
