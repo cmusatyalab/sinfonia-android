@@ -243,32 +243,12 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
                     manager.refreshTunnelStates()
                     return@launch
                 }
-                Log.d(TAG, "onReceive: tunnel created: ${!UserKnobs.allowRemoteControlIntents.first()}")
-//                TODO("How does UserKnobs.allowRemoteControlIntents work?")
-//                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || !UserKnobs.allowRemoteControlIntents.first())
-//                    return@launch
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || !UserKnobs.allowRemoteControlIntents.first())
+                    return@launch
                 val tunnelName = intent.getStringExtra("tunnel") ?: return@launch
-                if (action == CREATE_TUNNEL) {
-                    val parcelableConfig: ParcelableConfig? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent.getParcelableExtra("config", ParcelableConfig::class.java)
-                    } else {
-                        intent.getParcelableExtra("config")
-                    }
-                    val config = parcelableConfig?.resolve()
-                    try {
-                        manager.create(tunnelName, config)
-                    } catch (_: IllegalArgumentException) {
-                    } catch (e: Throwable) {
-                        Log.e(TAG, "IntentReceiver/onReceive", e)
-                        return@launch
-                    }
-                }
                 val state: Tunnel.State = when (action) {
                     SET_TUNNEL_UP -> Tunnel.State.UP
                     SET_TUNNEL_DOWN -> Tunnel.State.DOWN
-                    CREATE_TUNNEL ->
-                        if (intent.getBooleanExtra("state", true)) Tunnel.State.UP
-                        else Tunnel.State.DOWN
                     else -> return@launch
                 }
                 val tunnels = manager.getTunnels()

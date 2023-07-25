@@ -14,13 +14,17 @@ interface IWireGuardService {
 
     void refreshTunnels();
 
-    void createTunnel(String tunnelName, in ParcelableConfig parcelableConfig);
+    boolean createTunnel(String tunnelName, in ParcelableConfig parcelableConfig);
 
-    void destroyTunnel(String tunnelName);
+    boolean destroyTunnel(String tunnelName);
 
     boolean setTunnelUp(String tunnelName);
 
     boolean setTunnelDown(String tunnelName);
 
+    boolean setTunnelToggle(String tunnelName);
+
     ParcelableConfig getTunnelConfig(String tunnelName);
+
+    ParcelableConfig setTunnelConfig(String tunnelName, in ParcelableConfig parcelableConfig);
 }
