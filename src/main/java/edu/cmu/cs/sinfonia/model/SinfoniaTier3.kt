@@ -91,7 +91,7 @@ class SinfoniaTier3(
         val responseBody = response.bodyString()
 
         if (statusCode in 200..299) {
-            Log.i(TAG, "Response: $statusCode, $responseBody")
+            Log.d(TAG, "Response: $statusCode, $responseBody")
             val result = castResponse(responseBody)
             return result.map { deployment: Map<String, Any> ->
                 CloudletDeployment(application, deploymentKeys, deployment)

@@ -18,7 +18,6 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.wireguard.config.Config
-import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
 import edu.cmu.cs.sinfonia.model.SinfoniaMethods
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3
 import edu.cmu.cs.sinfonia.util.ErrorMessages
@@ -169,13 +168,29 @@ class SinfoniaService : Service(), SinfoniaMethods {
                 }
             }
         }
+
+        fun onTunnelDestroyed(tunnelName: String, throwable: Throwable?) {
+            val ctx = get()
+            scope.launch(Dispatchers.Main.immediate) {
+                if (throwable == null) {
+                    val message = ctx.getString(R.string.tunnel_destroy_success, tunnelName)
+                    Log.d(TAG, message)
+                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                } else {
+                    val error = ErrorMessages[throwable]
+                    val message = ctx.getString(R.string.tunnel_destroy_error, error)
+                    Log.e(TAG, message, throwable)
+                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun deploy(intent: Intent) {
         Log.i(TAG, "deploy: $intent")
         scope.launch {
-            val applicationName = intent.getStringExtra("applicationName") ?: "helloworld"
+            val applicationName = intent.getStringExtra("applicationName") ?: ""
             try {
                 sinfonia = SinfoniaTier3(
                     ctx = get(),
@@ -203,6 +218,10 @@ class SinfoniaService : Service(), SinfoniaMethods {
         }
     }
 
+    override fun cleanup(): Boolean {
+        return wireGuardClient.cleanup()
+    }
+
     @RequiresApi(Build.VERSION_CODES.N)
     private fun createTunnel(tunnelName: String): Throwable? {
         val newConfig = try {
@@ -220,7 +239,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
         if (newConfig == null) return null
 
         try {
-            wireGuardClient.createTunnel(tunnelName, ParcelableConfig(newConfig))
+            wireGuardClient.createTunnel(tunnelName, newConfig)
         } catch (e: Throwable) {
             Log.e(TAG, "createTunnel", e)
             return e

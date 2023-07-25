@@ -4,14 +4,18 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.wireguard.android.service.IWireGuardService
+import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.SinfoniaService.Companion.WIREGUARD_PACKAGE
 
 
 class WireGuardClient(private val context: Context) {
     private var mService: IWireGuardService? = null
+    var mTunnels: Map<String, Long> = mutableMapOf()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -42,12 +46,18 @@ class WireGuardClient(private val context: Context) {
         mService?.refreshTunnels()
     }
 
-    fun createTunnel(tunnelName: String, parcelableConfig: ParcelableConfig) {
-        mService?.createTunnel(tunnelName, parcelableConfig)
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun createTunnel(tunnelName: String, config: Config): Boolean {
+        val parcelableConfig = ParcelableConfig(config)
+        if (mService?.createTunnel(tunnelName, parcelableConfig)!!) {
+            mTunnels += tunnelName to System.currentTimeMillis()
+            return true
+        }
+        return false
     }
 
-    fun destroyTunnel(tunnelName: String) {
-        mService?.destroyTunnel(tunnelName)
+    fun destroyTunnel(tunnelName: String): Boolean {
+        return mService?.destroyTunnel(tunnelName)!!
     }
 
     fun setTunnelUp(tunnelName: String): Boolean {
@@ -58,8 +68,28 @@ class WireGuardClient(private val context: Context) {
         return mService?.setTunnelDown(tunnelName)!!
     }
 
-    fun getTunnnelConfig(tunnelName: String): ParcelableConfig? {
-        return mService?.getTunnelConfig(tunnelName)
+    fun setTunnelToggle(tunnelName: String): Boolean {
+        return mService?.setTunnelToggle(tunnelName)!!
+    }
+
+    fun getTunnnelConfig(tunnelName: String): Config? {
+        val parcelableConfig: ParcelableConfig = mService?.getTunnelConfig(tunnelName) ?: return null
+        return parcelableConfig.resolve()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun setTunnelConfig(tunnelName: String, config: Config): Config? {
+        val parcelableConfig = ParcelableConfig(config)
+        val newParcelableConfig: ParcelableConfig = mService?.setTunnelConfig(tunnelName, parcelableConfig) ?: return null
+        return newParcelableConfig.resolve()
+    }
+
+    fun cleanup(): Boolean {
+        var success = true
+        mTunnels.forEach { tunnel ->
+            success = success && mService?.destroyTunnel(tunnel.key)!!
+        }
+        return success
     }
 
     companion object {
