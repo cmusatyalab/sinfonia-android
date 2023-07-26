@@ -2,7 +2,6 @@ package com.wireguard.android
 
 import android.app.Service
 import android.content.Intent
-import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -12,18 +11,10 @@ import com.wireguard.android.Application.Companion.getTunnelManager
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.android.model.TunnelManager
 import com.wireguard.android.service.IWireGuardService
-import com.wireguard.android.util.UserKnobs
 import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class WireGuardService : Service() {
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(job + Dispatchers.IO)
     private lateinit var tunnelManager: TunnelManager
     private lateinit var localBroadcastManager: LocalBroadcastManager
 
@@ -169,11 +160,6 @@ class WireGuardService : Service() {
         localBroadcastManager = LocalBroadcastManager.getInstance(applicationContext)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        job.cancel()
-    }
-
     override fun onBind(intent: Intent?): IBinder {
         Log.i(TAG, "onBind: $intent")
         return binder
@@ -192,7 +178,5 @@ class WireGuardService : Service() {
     companion object {
         private const val TAG = "WireGuard/WireGuardService"
         const val ACTION_REFRESH_TUNNEL_STATES = "com.wireguard.android.action.REFRESH_TUNNEL_STATES"
-        const val ACTION_CREATE_TUNNEL = "com.wireguard.android.action.CREATE_TUNNEL"
-        const val ACTION_SET_TUNNEL_UP = "com.wireguard.android.action.SET_TUNNEL_UP"
     }
 }
