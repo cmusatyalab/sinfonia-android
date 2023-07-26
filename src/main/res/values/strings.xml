@@ -4,8 +4,11 @@
     <string name="deploy_error_reason_invalid_uuid">Invalid uuid</string>
     <string name="deploy_error_reason_uuid_not_found">Uuid not found</string>
     <string name="deploy_error_reason_cannot_cast_response">Cannot cast response</string>
+    <string name="deploy_error_reason_deployment_not_found">Deployment not found</string>
     <string name="unknown_error">Unknown error</string>
     <string name="generic_error">Unknown “%s” error</string>
+    <string name="fetch_success">Successfully fetched “%s” backend</string>
+    <string name="fetch_error">Cannot fetch backend for “%1$s”: %2$s</string>
     <string name="deploy_success">Successfully deployed “%s” backend</string>
     <string name="deploy_error">Cannot deploy backend for “%1$s”: %2$s</string>
     <string name="tunnel_create_success">Successfully created tunnel “%s”</string>

@@ -20,6 +20,8 @@ import androidx.core.app.NotificationCompat
 import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.model.SinfoniaMethods
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3
+import edu.cmu.cs.sinfonia.model.SinfoniaTier3.DeployException
+import edu.cmu.cs.sinfonia.model.SinfoniaTier3.DeployException.Reason
 import edu.cmu.cs.sinfonia.util.ErrorMessages
 import edu.cmu.cs.sinfonia.wireguard.WireGuardClient
 import kotlinx.coroutines.CoroutineScope
@@ -40,10 +42,6 @@ class SinfoniaService : Service(), SinfoniaMethods {
     override fun onCreate() {
         super.onCreate()
         wireGuardClient.bind()
-        // TODO("Wake up wireguard app if it is killed in order for its dynamically registered IntentReceiver to work")
-//        val intent = packageManager.getLaunchIntentForPackage(WIREGUARD_PACKAGE)
-//            ?.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-//        startActivity(intent)
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -137,18 +135,30 @@ class SinfoniaService : Service(), SinfoniaMethods {
             TODO("Not yet implemented")
         }
 
+        fun onFetch(applicationName: String, throwable: Throwable?) {
+            val ctx = get()
+            scope.launch(Dispatchers.Main.immediate) {
+                if (throwable == null) {
+                    val message = ctx.getString(R.string.fetch_success, applicationName)
+                    Log.d(TAG, message)
+                } else {
+                    val error = ErrorMessages[throwable]
+                    val message = ctx.getString(R.string.fetch_error, applicationName, error)
+                    Log.e(TAG, message, throwable)
+                }
+            }
+        }
+
         fun onDeploy(applicationName: String, throwable: Throwable?) {
             val ctx = get()
             scope.launch(Dispatchers.Main.immediate) {
                 if (throwable == null) {
                     val message = ctx.getString(R.string.deploy_success, applicationName)
                     Log.d(TAG, message)
-                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
                 } else {
                     val error = ErrorMessages[throwable]
                     val message = ctx.getString(R.string.deploy_error, applicationName, error)
                     Log.e(TAG, message, throwable)
-                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -186,6 +196,27 @@ class SinfoniaService : Service(), SinfoniaMethods {
         }
     }
 
+    override fun fetch(intent: Intent) {
+        Log.i(TAG, "fetch: $intent")
+        scope.launch {
+            val applicationName = intent.getStringExtra("applicationName") ?: ""
+            try {
+                sinfonia = SinfoniaTier3(
+                    ctx = get(),
+                    url = intent.getStringExtra("url") ?: "https://cmu.findcloudlet.org",
+                    applicationName = applicationName,
+                    uuid = intent.getStringExtra("uuid"),
+                    zeroconf = intent.getBooleanExtra("zeroconf", false),
+                    application = intent.getStringArrayListExtra("application") ?: listOf()
+                ).fetch()
+            } catch (e: Throwable) {
+                sinfoniaCallback.onFetch(applicationName, e)
+                return@launch
+            }
+            sinfoniaCallback.onFetch(applicationName, null)
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun deploy(intent: Intent) {
         Log.i(TAG, "deploy: $intent")
@@ -198,14 +229,12 @@ class SinfoniaService : Service(), SinfoniaMethods {
                     applicationName = applicationName,
                     uuid = intent.getStringExtra("uuid"),
                     zeroconf = intent.getBooleanExtra("zeroconf", false),
-                    application = intent.getStringArrayListExtra("application")
-                        ?: listOf("com.android.chrome")
+                    application = intent.getStringArrayListExtra("application") ?: listOf()
                 ).deploy()
             } catch (e: Throwable) {
                 sinfoniaCallback.onDeploy(applicationName, e)
                 return@launch
             }
-
             sinfoniaCallback.onDeploy(applicationName, null)
 
             try {
@@ -223,28 +252,11 @@ class SinfoniaService : Service(), SinfoniaMethods {
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    private fun createTunnel(tunnelName: String): Throwable? {
-        val newConfig = try {
-            sinfonia?.deployment?.tunnelConfig
-        } catch (e: Throwable) {
-//            val error = ErrorMessages[e]
-//            val tunnelName = if (tunnel == null) sinfonia?.applicationName else tunnel!!.name
-//            val message = getString(R.string.config_save_error, tunnelName, error)
-            Log.e(TAG, "config_save_error", e)
-            return e
-        }
-
+    private fun createTunnel(tunnelName: String) {
+        val deployment = sinfonia?.deployment ?: throw DeployException(Reason.DEPLOYMENT_NOT_FOUND)
+        val newConfig = deployment.tunnelConfig
         Log.d(TAG, "createTunnel newConfig: $newConfig")
-
-        if (newConfig == null) return null
-
-        try {
-            wireGuardClient.createTunnel(tunnelName, newConfig)
-        } catch (e: Throwable) {
-            Log.e(TAG, "createTunnel", e)
-            return e
-        }
-        return null
+        wireGuardClient.createTunnel(tunnelName, newConfig)
     }
 
 //    private fun hasSameConfigTunnel(
@@ -305,10 +317,8 @@ class SinfoniaService : Service(), SinfoniaMethods {
         private const val NOTIFICATION_ID = 1
         private const val REQUEST_CODE = 0
         const val ACTION_BIND = "edu.cmu.cs.sinfonia.action.BIND"
-        const val ACTION_UNBIND = "edu.cmu.cs.sinfonia.action.UNBIND"
         const val ACTION_START = "edu.cmu.cs.sinfonia.action.START"
         const val ACTION_STOP = "edu.cmu.cs.sinfonia.action.STOP"
-        const val CREATE_TUNNEL = "com.wireguard.android.action.CREATE_TUNNEL"
         fun get(): SinfoniaService {
             return weakSelf.get()!!
         }

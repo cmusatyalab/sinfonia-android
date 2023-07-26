@@ -57,6 +57,43 @@ class SinfoniaTier3(
         this.deployments = listOf()
     }
 
+    fun fetch(): SinfoniaTier3 {
+        Log.i(TAG, "fetch")
+        deployments = sinfoniaFetch()
+        return this
+    }
+
+    private fun sinfoniaFetch(): List<CloudletDeployment> {
+        Log.i(TAG, "sinfoniaFetch")
+        if (uuid == null) return listOf()
+
+        if (zeroconf) TODO("Zeroconf is not implemented")
+
+        val keyCache = KeyCache(ctx)
+        val deploymentKeys = keyCache.getKeys(uuid!!)
+        val deploymentUrl = "$tier1Url/api/v1/deploy/$uuid/${deploymentKeys.publicKey.toBase64()}"
+
+        Log.d(TAG, "post deploymentUrl: $deploymentUrl")
+
+        val client: HttpHandler = OkHttp(okHttpClient)
+        val request = Request(Method.GET, deploymentUrl)
+        val response = client(request)
+
+        val statusCode = response.status.code
+        val responseBody = response.bodyString()
+
+        if (statusCode in 200..299) {
+            Log.d(TAG, "Response: $statusCode, $responseBody")
+            val result = castResponse(responseBody)
+            return result.map { deployment: Map<String, Any> ->
+                CloudletDeployment(application, deploymentKeys, deployment)
+            }
+        }
+        Log.d(TAG, "Response: $statusCode, $responseBody")
+
+        return listOf()
+    }
+
     fun deploy(): SinfoniaTier3 {
         Log.i(TAG, "deploy")
         deployments = sinfoniaDeploy()
@@ -97,7 +134,7 @@ class SinfoniaTier3(
                 CloudletDeployment(application, deploymentKeys, deployment)
             }
         }
-        Log.e(TAG, "Response: $statusCode, $responseBody")
+        Log.d(TAG, "Response: $statusCode, $responseBody")
 
         return listOf()
     }
@@ -122,7 +159,8 @@ class SinfoniaTier3(
             INVALID_TIER_ONE_URL,
             INVALID_UUID,
             UUID_NOT_FOUND,
-            CANNOT_CAST_RESPONSE
+            CANNOT_CAST_RESPONSE,
+            DEPLOYMENT_NOT_FOUND
         }
     }
 
