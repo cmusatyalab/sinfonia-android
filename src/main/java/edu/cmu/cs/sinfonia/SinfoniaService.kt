@@ -222,6 +222,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
         Log.i(TAG, "deploy: $intent")
         scope.launch {
             val applicationName = intent.getStringExtra("applicationName") ?: ""
+            val tunnelName = intent.getStringExtra("tunnelName") ?: applicationName
             try {
                 sinfonia = SinfoniaTier3(
                     ctx = get(),
@@ -238,12 +239,12 @@ class SinfoniaService : Service(), SinfoniaMethods {
             sinfoniaCallback.onDeploy(applicationName, null)
 
             try {
-                createTunnel(applicationName)
+                createTunnel(tunnelName)
             } catch (e: Throwable) {
-                sinfoniaCallback.onTunnelCreated(applicationName, e)
+                sinfoniaCallback.onTunnelCreated(tunnelName, e)
                 return@launch
             }
-            sinfoniaCallback.onTunnelCreated(applicationName, null)
+            sinfoniaCallback.onTunnelCreated(tunnelName, null)
         }
     }
 

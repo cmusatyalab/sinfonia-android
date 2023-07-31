@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import edu.cmu.cs.sinfonia.model.SinfoniaTier3.Companion.TYPE_REFERENCE
 import edu.cmu.cs.sinfonia.util.KeyCache
 import okhttp3.OkHttpClient
 import org.http4k.client.OkHttp
@@ -99,7 +98,8 @@ class SinfoniaTier3(
         deployments = sinfoniaDeploy()
 
         // Pick the best deployment (first returned for now...)
-        deployment = if (deployments.isEmpty()) null else deployments[0]
+        deployment = if (deployments.isEmpty())
+            throw DeployException(DeployException.Reason.DEPLOYMENT_NOT_FOUND) else deployments[0]
 
         Log.d(TAG, "deploymentName: ${deployment?.deploymentName}")
         Log.d(TAG, "deploymentInterface: ${deployment?.tunnelConfig?.`interface`}")
