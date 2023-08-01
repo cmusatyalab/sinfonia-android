@@ -18,19 +18,19 @@ class ParcelablePeer : Parcelable {
     private var owner: ParcelableConfig? = null
     private var totalPeers = 0
 
-    var allowedIps: String = ""
+    private var allowedIps: String = ""
         set(value) {
             field = value
             calculateAllowedIpsState()
         }
 
-    var endpoint: String = ""
+    private var endpoint: String = ""
 
-    var persistentKeepalive: String = ""
+    private var persistentKeepalive: String = ""
 
-    var preSharedKey: String = ""
+    private var preSharedKey: String = ""
 
-    var publicKey: String = ""
+    private var publicKey: String = ""
 
     private val isAbleToExcludePrivateIps: Boolean
         get() = allowedIpsState == AllowedIpsState.CONTAINS_IPV4_PUBLIC_NETWORKS || allowedIpsState == AllowedIpsState.CONTAINS_IPV4_WILDCARD
@@ -113,7 +113,7 @@ class ParcelablePeer : Parcelable {
             }
         }
         // DNS servers only need to handled specially when we're excluding private IPs.
-        if (excludingPrivateIps) output.addAll(dnsRoutes) else output.removeAll(dnsRoutes)
+        if (excludingPrivateIps) output.addAll(dnsRoutes) else output.removeAll(dnsRoutes.toSet())
         allowedIps = Attribute.join(output)
         allowedIpsState = if (excludingPrivateIps) AllowedIpsState.CONTAINS_IPV4_PUBLIC_NETWORKS else AllowedIpsState.CONTAINS_IPV4_WILDCARD
     }

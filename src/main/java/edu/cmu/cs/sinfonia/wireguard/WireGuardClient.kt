@@ -72,7 +72,7 @@ class WireGuardClient(private val context: Context) {
         return mService?.setTunnelToggle(tunnelName)!!
     }
 
-    fun getTunnnelConfig(tunnelName: String): Config? {
+    fun getTunnelConfig(tunnelName: String): Config? {
         val parcelableConfig: ParcelableConfig = mService?.getTunnelConfig(tunnelName) ?: return null
         return parcelableConfig.resolve()
     }

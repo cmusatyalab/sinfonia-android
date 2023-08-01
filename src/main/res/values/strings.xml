@@ -16,4 +16,5 @@
     <string name="tunnel_error_reason_already_exist">Tunnel “%s” already exists</string>
     <string name="tunnel_destroy_success">Successfully destroyed tunnel “%s”</string>
     <string name="tunnel_destroy_error">Unable to destroy tunnel: %s</string>
+    <string name="deploy_error_reason_another_tunnel_is_up">Another tunnel “%s“ is up</string>
 </resources>

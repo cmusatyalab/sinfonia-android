@@ -1,6 +1,8 @@
 package edu.cmu.cs.sinfonia.model
 
 import android.content.Context
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -144,8 +146,14 @@ class SinfoniaTier3(
         return objectMapper.readValue(responseBody, TYPE_REFERENCE)
     }
 
-    class DeployException(private val reason: Reason, vararg format: Any?) : Exception() {
+    class DeployException(private val reason: Reason, vararg format: Any?) : Exception(), Parcelable {
         private val formatArray: Array<out Any?> = format
+
+        constructor(parcel: Parcel) : this(
+            TODO("reason"),
+            TODO("format")
+        ) {
+        }
 
         fun getFormat(): Array<out Any?> {
             return formatArray
@@ -161,6 +169,24 @@ class SinfoniaTier3(
             UUID_NOT_FOUND,
             CANNOT_CAST_RESPONSE,
             DEPLOYMENT_NOT_FOUND
+        }
+
+        override fun writeToParcel(parcel: Parcel, flags: Int) {
+
+        }
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        companion object CREATOR : Parcelable.Creator<DeployException> {
+            override fun createFromParcel(parcel: Parcel): DeployException {
+                return DeployException(parcel)
+            }
+
+            override fun newArray(size: Int): Array<DeployException?> {
+                return arrayOfNulls(size)
+            }
         }
     }
 
