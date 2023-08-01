@@ -69,10 +69,6 @@ class AddTunnelsSheet : BottomSheetDialogFragment() {
                     dismiss()
                     onRequestScanQRCode()
                 }
-                dialog.findViewById<View>(R.id.create_deploy)?.setOnClickListener {
-                    dismiss()
-                    onRequestDeploy()
-                }
             }
         })
         val gradientDrawable = GradientDrawable().apply {
@@ -98,16 +94,11 @@ class AddTunnelsSheet : BottomSheetDialogFragment() {
         setFragmentResult(REQUEST_KEY_NEW_TUNNEL, bundleOf(REQUEST_METHOD to REQUEST_SCAN))
     }
 
-    private fun onRequestDeploy() {
-        setFragmentResult(REQUEST_KEY_NEW_TUNNEL, bundleOf(REQUEST_METHOD to REQUEST_DEPLOY))
-    }
-
     companion object {
         const val REQUEST_KEY_NEW_TUNNEL = "request_new_tunnel"
         const val REQUEST_METHOD = "request_method"
         const val REQUEST_CREATE = "request_create"
         const val REQUEST_IMPORT = "request_import"
         const val REQUEST_SCAN = "request_scan"
-        const val REQUEST_DEPLOY = "request_deploy"
     }
 }

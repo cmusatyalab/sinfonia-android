@@ -41,13 +41,6 @@ class ParcelableConfig : Parcelable {
         `interface` = ParcelableInterface()
     }
 
-    fun addPeer(): ParcelablePeer {
-        val peer = ParcelablePeer()
-        peers.add(peer)
-        peer.bind(this)
-        return peer
-    }
-
     override fun describeContents() = 0
 
     @Throws(BadConfigException::class)

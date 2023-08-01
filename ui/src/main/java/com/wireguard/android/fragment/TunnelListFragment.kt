@@ -4,6 +4,7 @@
  */
 package com.wireguard.android.fragment
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Resources
 import android.os.Bundle
@@ -28,7 +29,6 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.wireguard.android.Application
 import com.wireguard.android.R
-import com.wireguard.android.activity.DeployActivity
 import com.wireguard.android.activity.TunnelCreatorActivity
 import com.wireguard.android.databinding.ObservableKeyedRecyclerViewAdapter.RowConfigurationHandler
 import com.wireguard.android.databinding.TunnelListFragmentBinding
@@ -122,10 +122,6 @@ class TunnelListFragment : BaseFragment() {
                                     .setBeepEnabled(false)
                                     .setPrompt(getString(R.string.qr_code_hint))
                             )
-                        }
-
-                        AddTunnelsSheet.REQUEST_DEPLOY -> {
-                            startActivity(Intent(requireActivity(), DeployActivity::class.java))
                         }
                     }
                 }
@@ -261,6 +257,7 @@ class TunnelListFragment : BaseFragment() {
             }
         }
 
+        @SuppressLint("NotifyDataSetChanged")
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             actionMode = mode
             backPressedCallback?.isEnabled = true
@@ -273,6 +270,7 @@ class TunnelListFragment : BaseFragment() {
             return true
         }
 
+        @SuppressLint("NotifyDataSetChanged")
         override fun onDestroyActionMode(mode: ActionMode) {
             actionMode = null
             backPressedCallback?.isEnabled = false

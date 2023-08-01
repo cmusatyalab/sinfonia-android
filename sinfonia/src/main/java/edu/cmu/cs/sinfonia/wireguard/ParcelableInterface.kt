@@ -24,11 +24,11 @@ class ParcelableInterface : Parcelable {
 
     var dnsServers: String = ""
 
-    var listenPort: String = ""
+    private var listenPort: String = ""
 
     var mtu: String = ""
 
-    var privateKey: String = ""
+    private var privateKey: String = ""
 
     val publicKey: String
         get() = try {
@@ -63,11 +63,6 @@ class ParcelableInterface : Parcelable {
     constructor()
 
     override fun describeContents() = 0
-
-    fun generateKeyPair() {
-        val keyPair = KeyPair()
-        privateKey = keyPair.privateKey.toBase64()
-    }
 
     @Throws(BadConfigException::class)
     fun resolve(): Interface {

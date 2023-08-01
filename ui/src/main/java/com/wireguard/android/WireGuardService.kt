@@ -43,7 +43,8 @@ class WireGuardService : Service() {
                 val config = parcelableConfig.resolve()
                 try {
                     tunnelManager.create(tunnelName, config)
-                } catch (_: IllegalArgumentException) {
+                } catch (e: IllegalArgumentException) {
+                    Log.e(TAG, "createTunnel", e)
                     return@runBlocking
                 } catch (e: Throwable) {
                     Log.e(TAG, "createTunnel", e)
