@@ -17,4 +17,8 @@
     <string name="tunnel_destroy_success">Successfully destroyed tunnel “%s”</string>
     <string name="tunnel_destroy_error">Unable to destroy tunnel: %s</string>
     <string name="deploy_error_reason_another_tunnel_is_up">Another tunnel “%s“ is up</string>
+    <string name="tunnel_error_reason_invalid_name">Invalid tunnel name: %s</string>
+    <string name="tunnel_error_reason_unknown">Tunnel error reason unknown: %s</string>
+    <string name="deploy_error_reason_unknown">Deploy error reason unknown</string>
+    <string name="tunnel_error_reason_not_found">Tunnel “%s” not found</string>
 </resources>

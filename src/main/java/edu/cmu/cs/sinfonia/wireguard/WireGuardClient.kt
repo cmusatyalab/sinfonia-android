@@ -6,11 +6,14 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.IBinder
+import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.wireguard.android.service.IWireGuardService
 import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.SinfoniaService.Companion.WIREGUARD_PACKAGE
+import edu.cmu.cs.sinfonia.model.SinfoniaTier3
+import edu.cmu.cs.sinfonia.util.TunnelException
 
 
 class WireGuardClient(private val context: Context) {
@@ -38,56 +41,73 @@ class WireGuardClient(private val context: Context) {
         return true
     }
 
+    fun rebind() {
+        unbind()
+        bind()
+    }
+
     fun unbind() {
         context.unbindService(serviceConnection)
     }
 
     fun refreshTunnels() {
+        if (mService == null) rebind()
         mService?.refreshTunnels()
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun createTunnel(tunnelName: String, config: Config): Boolean {
+    fun createTunnel(tunnelName: String, config: Config) {
+        if (mService == null) rebind()
         val parcelableConfig = ParcelableConfig(config)
-        if (mService?.createTunnel(tunnelName, parcelableConfig)!!) {
-            mTunnels += tunnelName to System.currentTimeMillis()
-            return true
-        }
-        return false
+        val throwable: TunnelException? = mService?.createTunnel(tunnelName, parcelableConfig)
+        if (throwable != null) throw throwable
+        mTunnels += tunnelName to System.currentTimeMillis()
     }
 
-    fun destroyTunnel(tunnelName: String): Boolean {
-        return mService?.destroyTunnel(tunnelName)!!
+    fun destroyTunnel(tunnelName: String) {
+        if (mService == null) rebind()
+        val throwable: TunnelException? = mService?.destroyTunnel(tunnelName)
+        if (throwable != null) throw throwable
     }
 
-    fun setTunnelUp(tunnelName: String): Boolean {
-        return mService?.setTunnelUp(tunnelName)!!
+    fun setTunnelUp(tunnelName: String) {
+        if (mService == null) rebind()
+        val throwable: TunnelException? = mService?.setTunnelUp(tunnelName)
+        if (throwable != null) throw throwable
     }
 
-    fun setTunnelDown(tunnelName: String): Boolean {
-        return mService?.setTunnelDown(tunnelName)!!
+    fun setTunnelDown(tunnelName: String) {
+        if (mService == null) rebind()
+        val throwable: TunnelException? = mService?.setTunnelDown(tunnelName)
+        if (throwable != null) throw throwable
     }
 
-    fun setTunnelToggle(tunnelName: String): Boolean {
-        return mService?.setTunnelToggle(tunnelName)!!
+    fun setTunnelToggle(tunnelName: String) {
+        if (mService == null) rebind()
+        val throwable: TunnelException? = mService?.setTunnelToggle(tunnelName)
+        if (throwable != null) throw throwable
     }
 
     fun getTunnelConfig(tunnelName: String): Config? {
+        if (mService == null) rebind()
         val parcelableConfig: ParcelableConfig = mService?.getTunnelConfig(tunnelName) ?: return null
         return parcelableConfig.resolve()
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun setTunnelConfig(tunnelName: String, config: Config): Config? {
+        if (mService == null) rebind()
         val parcelableConfig = ParcelableConfig(config)
         val newParcelableConfig: ParcelableConfig = mService?.setTunnelConfig(tunnelName, parcelableConfig) ?: return null
         return newParcelableConfig.resolve()
     }
 
     fun cleanup(): Boolean {
+        if (mService == null) rebind()
         var success = true
         mTunnels.forEach { tunnel ->
-            success = success && mService?.destroyTunnel(tunnel.key)!!
+            val throwable: TunnelException? = mService?.destroyTunnel(tunnel.key)
+            if (throwable != null) success = false
         }
         return success
     }

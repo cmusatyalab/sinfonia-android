@@ -25,6 +25,7 @@ import java.net.InetAddress
 
 object ErrorMessages {
     private val DE_REASON_MAP = mapOf(
+        DeployException.Reason.UNKNOWN to R.string.deploy_error_reason_unknown,
         DeployException.Reason.INVALID_TIER_ONE_URL to R.string.deploy_error_reason_invalid_tier_one_url,
         DeployException.Reason.INVALID_UUID to R.string.deploy_error_reason_invalid_uuid,
         DeployException.Reason.UUID_NOT_FOUND to R.string.deploy_error_reason_uuid_not_found,
@@ -32,7 +33,10 @@ object ErrorMessages {
         DeployException.Reason.DEPLOYMENT_NOT_FOUND to R.string.deploy_error_reason_deployment_not_found
     )
     private val TE_REASON_MAP = mapOf(
+        TunnelException.Reason.UNKNOWN to R.string.tunnel_error_reason_unknown,
         TunnelException.Reason.ALREADY_EXIST to R.string.tunnel_error_reason_already_exist,
+        TunnelException.Reason.INVALID_NAME to R.string.tunnel_error_reason_invalid_name,
+        TunnelException.Reason.NOT_FOUND to R.string.tunnel_error_reason_not_found
     )
 //    private val BCE_REASON_MAP = mapOf(
 //        BadConfigException.Reason.INVALID_KEY to R.string.bad_config_reason_invalid_key,
@@ -85,6 +89,9 @@ object ErrorMessages {
         return when {
             rootCause is DeployException -> {
                 resources.getString(DE_REASON_MAP.getValue(rootCause.getReason()), *rootCause.getFormat())
+            }
+            rootCause is TunnelException -> {
+                resources.getString(TE_REASON_MAP.getValue(rootCause.getReason()), *rootCause.getFormat())
             }
 //            rootCause is BadConfigException -> {
 //                val reason = getBadConfigExceptionReason(resources, rootCause)

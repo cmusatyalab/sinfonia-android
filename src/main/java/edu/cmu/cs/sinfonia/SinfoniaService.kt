@@ -240,6 +240,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
 
             try {
                 createTunnel(tunnelName)
+                setTunnelUp(tunnelName)
             } catch (e: Throwable) {
                 sinfoniaCallback.onTunnelCreated(tunnelName, e)
                 return@launch
@@ -256,8 +257,12 @@ class SinfoniaService : Service(), SinfoniaMethods {
     private fun createTunnel(tunnelName: String) {
         val deployment = sinfonia?.deployment ?: throw DeployException(Reason.DEPLOYMENT_NOT_FOUND)
         val newConfig = deployment.tunnelConfig
-        Log.d(TAG, "createTunnel newConfig: $newConfig")
+        Log.d(TAG, "createTunnel: $newConfig")
         wireGuardClient.createTunnel(tunnelName, newConfig)
+    }
+
+    private fun setTunnelUp(tunnelName: String) {
+        wireGuardClient.setTunnelUp(tunnelName)
     }
 
 //    private fun hasSameConfigTunnel(
