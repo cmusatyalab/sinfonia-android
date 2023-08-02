@@ -11,6 +11,8 @@ import com.wireguard.android.Application.Companion.getTunnelManager
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.android.model.TunnelManager
 import com.wireguard.android.service.IWireGuardService
+import edu.cmu.cs.sinfonia.util.TunnelException
+import edu.cmu.cs.sinfonia.util.TunnelException.Reason
 import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
 import kotlinx.coroutines.runBlocking
 
@@ -36,95 +38,109 @@ class WireGuardService : Service() {
             localBroadcastManager.sendBroadcast(intent)
         }
 
-        override fun createTunnel(tunnelName: String, parcelableConfig: ParcelableConfig): Boolean {
+        override fun createTunnel(tunnelName: String, parcelableConfig: ParcelableConfig): TunnelException? {
             Log.i(TAG, "createTunnel: $tunnelName")
-            var success = false
+            var throwable: TunnelException? = null
             runBlocking {
                 val config = parcelableConfig.resolve()
                 try {
                     tunnelManager.create(tunnelName, config)
                 } catch (e: IllegalArgumentException) {
                     Log.e(TAG, "createTunnel", e)
-                    return@runBlocking
+                    throwable = when {
+                        e.message.equals(getString(R.string.tunnel_error_invalid_name)) -> TunnelException(Reason.INVALID_NAME)
+                        e.message.equals(getString(R.string.tunnel_error_already_exists, tunnelName)) -> TunnelException(Reason.ALREADY_EXIST, tunnelName)
+                        else -> TunnelException(Reason.UNKNOWN)
+                    }
                 } catch (e: Throwable) {
                     Log.e(TAG, "createTunnel", e)
-                    return@runBlocking
+                    throwable = TunnelException(Reason.UNKNOWN)
                 }
-                setTunnelUp(tunnelName)
-                success = true
             }
-            return success
+            return throwable
         }
 
-        override fun destroyTunnel(tunnelName: String): Boolean {
+        override fun destroyTunnel(tunnelName: String): TunnelException? {
             Log.i(TAG, "destroyTunnel: $tunnelName")
-            var success = false
+            var throwable: TunnelException? = null
             runBlocking {
                 val tunnels = tunnelManager.getTunnels()
-                val tunnel = tunnels[tunnelName] ?: return@runBlocking
+                val tunnel = tunnels[tunnelName]
+                if (tunnel == null) {
+                    throwable = TunnelException(Reason.NOT_FOUND, tunnelName)
+                    return@runBlocking
+                }
                 try {
                     tunnelManager.delete(tunnel)
                 } catch(e: Throwable) {
                     Log.e(TAG, "destroyTunnel", e)
-                    return@runBlocking
+                    throwable = TunnelException(Reason.UNKNOWN)
                 }
-                success = true
             }
-            return success
+            return throwable
         }
 
-        override fun setTunnelUp(tunnelName: String): Boolean {
+        override fun setTunnelUp(tunnelName: String): TunnelException? {
             Log.i(TAG, "setTunnelUp: $tunnelName")
-            var success = false
+            var throwable: TunnelException? = null
             runBlocking {
                 val tunnels = tunnelManager.getTunnels()
-                val tunnel = tunnels[tunnelName] ?: return@runBlocking
+                val tunnel = tunnels[tunnelName]
+                if (tunnel == null) {
+                    throwable = TunnelException(Reason.NOT_FOUND, tunnelName)
+                    return@runBlocking
+                }
                 val newState: Tunnel.State
                 try {
                     newState = tunnelManager.setTunnelState(tunnel, Tunnel.State.UP)
                 } catch (e: Throwable) {
                     Log.e(TAG, "setTunnelUp", e)
-                    return@runBlocking
+                    throwable = TunnelException(Reason.UNKNOWN)
                 }
-                if (newState == Tunnel.State.UP) success = true
             }
-            return success
+            return throwable
         }
 
-        override fun setTunnelDown(tunnelName: String): Boolean {
+        override fun setTunnelDown(tunnelName: String): TunnelException? {
             Log.i(TAG, "setTunnelDown: $tunnelName")
-            var success = false
+            var throwable: TunnelException? = null
             runBlocking {
                 val tunnels = tunnelManager.getTunnels()
-                val tunnel = tunnels[tunnelName] ?: return@runBlocking
+                val tunnel = tunnels[tunnelName]
+                if (tunnel == null) {
+                    throwable = TunnelException(Reason.NOT_FOUND, tunnelName)
+                    return@runBlocking
+                }
                 val newState: Tunnel.State?
                 try {
                     newState = tunnelManager.setTunnelState(tunnel, Tunnel.State.DOWN)
                 } catch (e: Throwable) {
                     Log.e(TAG, "setTunnelDown", e)
-                    return@runBlocking
+                    throwable = TunnelException(Reason.UNKNOWN)
                 }
-                if (newState == Tunnel.State.DOWN) success = true
             }
-            return success
+            return throwable
         }
 
-        override fun setTunnelToggle(tunnelName: String): Boolean {
+        override fun setTunnelToggle(tunnelName: String): TunnelException? {
             Log.i(TAG, "setTunnelToggle: $tunnelName")
-            var success = false
+            var throwable: TunnelException? = null
             runBlocking {
                 val tunnels = tunnelManager.getTunnels()
-                val tunnel = tunnels[tunnelName] ?: return@runBlocking
+                val tunnel = tunnels[tunnelName]
+                if (tunnel == null) {
+                    throwable = TunnelException(Reason.NOT_FOUND, tunnelName)
+                    return@runBlocking
+                }
                 val newState: Tunnel.State?
                 try {
                     newState = tunnelManager.setTunnelState(tunnel, Tunnel.State.DOWN)
                 } catch (e: Throwable) {
                     Log.e(TAG, "setTunnelDown", e)
-                    return@runBlocking
+                    throwable = TunnelException(Reason.UNKNOWN)
                 }
-                if (newState == Tunnel.State.TOGGLE) success = true
             }
-            return success
+            return throwable
         }
 
         @RequiresApi(Build.VERSION_CODES.N)

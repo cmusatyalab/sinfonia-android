@@ -109,15 +109,13 @@ class SinfoniaTier3(
         return resultMap
     }
 
-    class DeployException(private val reason: Reason, vararg format: Any?) : Exception(),
-        Parcelable {
+    class DeployException(private val reason: Reason, vararg format: Any?) : Exception(), Parcelable {
         private val formatArray: Array<out Any?> = format
 
         constructor(parcel: Parcel) : this(
-            TODO("reason"),
-            TODO("format")
-        ) {
-        }
+            Reason.valueOf(parcel.readString() ?: Reason.UNKNOWN.name),
+            *parcel.readArray(ClassLoader.getSystemClassLoader()) as Array<out Any?>
+        )
 
         fun getFormat(): Array<out Any?> {
             return formatArray
@@ -128,6 +126,7 @@ class SinfoniaTier3(
         }
 
         enum class Reason {
+            UNKNOWN,
             INVALID_TIER_ONE_URL,
             INVALID_UUID,
             UUID_NOT_FOUND,
@@ -136,7 +135,8 @@ class SinfoniaTier3(
         }
 
         override fun writeToParcel(parcel: Parcel, flags: Int) {
-
+            parcel.writeString(reason.name)
+            parcel.writeArray(formatArray)
         }
 
         override fun describeContents(): Int {

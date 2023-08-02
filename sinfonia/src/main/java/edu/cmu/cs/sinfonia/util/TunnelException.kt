@@ -8,10 +8,9 @@ class TunnelException(private val reason: Reason, vararg format: Any?) : Excepti
     private val formatArray: Array<out Any?> = format
 
     constructor(parcel: Parcel) : this(
-        TODO("reason"),
-        TODO("format")
-    ) {
-    }
+        Reason.valueOf(parcel.readString() ?: Reason.UNKNOWN.name),
+        *parcel.readArray(ClassLoader.getSystemClassLoader()) as Array<out Any?>
+    )
 
     fun getFormat(): Array<out Any?> {
         return formatArray
@@ -21,11 +20,15 @@ class TunnelException(private val reason: Reason, vararg format: Any?) : Excepti
         return reason
     }
     enum class Reason {
-        ALREADY_EXIST
+        UNKNOWN,
+        ALREADY_EXIST,
+        INVALID_NAME,
+        NOT_FOUND
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-
+        parcel.writeString(reason.name)
+        parcel.writeArray(formatArray)
     }
 
     override fun describeContents(): Int {
