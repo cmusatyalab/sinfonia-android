@@ -24,7 +24,11 @@ class TunnelException(private val reason: Reason, vararg format: Any?) : Excepti
         UNKNOWN,
         ALREADY_EXIST,
         INVALID_NAME,
-        NOT_FOUND
+        NOT_FOUND,
+        ALREADY_UP,
+        ALREADY_DOWN,
+        ALREADY_TOGGLE,
+        UNAUTHORIZED_ACCESS
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

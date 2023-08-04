@@ -6,19 +6,17 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.IBinder
-import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.wireguard.android.service.IWireGuardService
 import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.SinfoniaService.Companion.WIREGUARD_PACKAGE
-import edu.cmu.cs.sinfonia.model.SinfoniaTier3
 import edu.cmu.cs.sinfonia.util.TunnelException
 
 
 class WireGuardClient(private val context: Context) {
     private var mService: IWireGuardService? = null
-    var mTunnels: Map<String, Long> = mutableMapOf()
+    private var mTunnels: MutableList<String> = mutableListOf()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -50,6 +48,11 @@ class WireGuardClient(private val context: Context) {
         context.unbindService(serviceConnection)
     }
 
+    fun fetchMyTunnels(application: List<String>) {
+        if (mService == null) rebind()
+        mTunnels.addAll(mService?.fetchMyTunnels(application.toTypedArray()) ?: arrayOf())
+    }
+
     fun refreshTunnels() {
         if (mService == null) rebind()
         mService?.refreshTunnels()
@@ -61,11 +64,11 @@ class WireGuardClient(private val context: Context) {
         val parcelableConfig = ParcelableConfig(config)
         val throwable: TunnelException? = mService?.createTunnel(tunnelName, parcelableConfig)
         if (throwable != null) throw throwable
-        mTunnels += tunnelName to System.currentTimeMillis()
     }
 
     fun destroyTunnel(tunnelName: String) {
         if (mService == null) rebind()
+        if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
         val throwable: TunnelException? = mService?.destroyTunnel(tunnelName)
         if (throwable != null) throw throwable
     }
@@ -80,6 +83,14 @@ class WireGuardClient(private val context: Context) {
         if (mService == null) rebind()
         val throwable: TunnelException? = mService?.setTunnelDown(tunnelName)
         if (throwable != null) throw throwable
+    }
+
+    fun setTunnelDownAll() {
+        for (tunnel in mTunnels) {
+            try {
+                setTunnelDown(tunnel)
+            } catch (_: Throwable) {}
+        }
     }
 
     fun setTunnelToggle(tunnelName: String) {
@@ -102,13 +113,25 @@ class WireGuardClient(private val context: Context) {
         return newParcelableConfig.resolve()
     }
 
+    fun saveTunnel(tunnelName: String) {
+        mTunnels.add(tunnelName)
+    }
+
+    fun removeTunnel(tunnelName: String) {
+        mTunnels.remove(tunnelName)
+    }
+
     fun cleanup(): Boolean {
         if (mService == null) rebind()
         var success = true
-        mTunnels.forEach { tunnel ->
-            val throwable: TunnelException? = mService?.destroyTunnel(tunnel.key)
-            if (throwable != null) success = false
+        for (tunnel in mTunnels) {
+            try {
+                destroyTunnel(tunnel)
+            } catch (_: Throwable) {
+                success = false
+            }
         }
+        if (success) mTunnels.clear()
         return success
     }
 

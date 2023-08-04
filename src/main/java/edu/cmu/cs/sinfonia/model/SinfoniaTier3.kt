@@ -21,7 +21,7 @@ class SinfoniaTier3(
         applicationName: String?,
         uuid: String?,
         zeroconf: Boolean = false,
-        application: List<String> = listOf("com.android.chrome")
+        application: List<String> = listOf()
 ) {
     private val okHttpClient = OkHttpClient.Builder()
             .followRedirects(true)

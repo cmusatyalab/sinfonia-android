@@ -17,12 +17,14 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.model.SinfoniaMethods
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3.DeployException
 import edu.cmu.cs.sinfonia.model.SinfoniaTier3.DeployException.Reason
 import edu.cmu.cs.sinfonia.util.ErrorMessages
+import edu.cmu.cs.sinfonia.util.TunnelException
 import edu.cmu.cs.sinfonia.wireguard.WireGuardClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -155,10 +157,12 @@ class SinfoniaService : Service(), SinfoniaMethods {
                 if (throwable == null) {
                     val message = ctx.getString(R.string.deploy_success, applicationName)
                     Log.d(TAG, message)
+                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
                 } else {
                     val error = ErrorMessages[throwable]
                     val message = ctx.getString(R.string.deploy_error, applicationName, error)
                     Log.e(TAG, message, throwable)
+                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -169,12 +173,28 @@ class SinfoniaService : Service(), SinfoniaMethods {
                 if (throwable == null) {
                     val message = ctx.getString(R.string.tunnel_create_success, tunnelName)
                     Log.d(TAG, message)
-                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                    wireGuardClient.saveTunnel(tunnelName)
                 } else {
                     val error = ErrorMessages[throwable]
                     val message = ctx.getString(R.string.tunnel_create_error, error)
                     Log.e(TAG, message, throwable)
-                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                    if (throwable is TunnelException) {
+                        when (throwable.getReason()) {
+                            TunnelException.Reason.UNKNOWN -> return@launch
+                            TunnelException.Reason.INVALID_NAME -> return@launch
+                            TunnelException.Reason.ALREADY_EXIST -> scope.launch inner@{
+                                try {
+                                    wireGuardClient.setTunnelUp(tunnelName)
+                                } catch (e: Throwable) {
+                                    sinfoniaCallback.onTunnelSet(tunnelName, Tunnel.State.UP, e)
+                                    return@inner
+                                }
+                                sinfoniaCallback.onTunnelSet(tunnelName, Tunnel.State.UP, null)
+                            }
+                            else -> {}
+                        }
+                        wireGuardClient.saveTunnel(tunnelName)
+                    }
                 }
             }
         }
@@ -185,12 +205,34 @@ class SinfoniaService : Service(), SinfoniaMethods {
                 if (throwable == null) {
                     val message = ctx.getString(R.string.tunnel_destroy_success, tunnelName)
                     Log.d(TAG, message)
-                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                    wireGuardClient.removeTunnel(tunnelName)
                 } else {
                     val error = ErrorMessages[throwable]
                     val message = ctx.getString(R.string.tunnel_destroy_error, error)
                     Log.e(TAG, message, throwable)
-                    Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+                    if (throwable is TunnelException) {
+                        when (throwable.getReason()) {
+                            TunnelException.Reason.UNKNOWN -> return@launch
+                            TunnelException.Reason.INVALID_NAME -> return@launch
+                            TunnelException.Reason.UNAUTHORIZED_ACCESS -> return@launch
+                            else -> {}
+                        }
+                        wireGuardClient.removeTunnel(tunnelName)
+                    }
+                }
+            }
+        }
+
+        fun onTunnelSet(tunnelName: String, state: Tunnel.State, throwable: Throwable?) {
+            val ctx = get()
+            scope.launch(Dispatchers.Main.immediate) {
+                if (throwable == null) {
+                    val message = ctx.getString(R.string.tunnel_set_success, tunnelName, state.toString().lowercase())
+                    Log.d(TAG, message)
+                } else {
+                    val error = ErrorMessages[throwable]
+                    val message = ctx.getString(R.string.tunnel_set_error, tunnelName, state.toString().lowercase(), error)
+                    Log.e(TAG, message, throwable)
                 }
             }
         }
@@ -200,6 +242,9 @@ class SinfoniaService : Service(), SinfoniaMethods {
         Log.i(TAG, "fetch: $intent")
         scope.launch {
             val applicationName = intent.getStringExtra("applicationName") ?: ""
+            val application = intent.getStringArrayListExtra("application") ?: listOf()
+            wireGuardClient.fetchMyTunnels(application)
+            wireGuardClient.setTunnelDownAll()
             try {
                 sinfonia = SinfoniaTier3(
                     ctx = get(),
@@ -207,7 +252,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
                     applicationName = applicationName,
                     uuid = intent.getStringExtra("uuid"),
                     zeroconf = intent.getBooleanExtra("zeroconf", false),
-                    application = intent.getStringArrayListExtra("application") ?: listOf()
+                    application = application
                 ).fetch()
             } catch (e: Throwable) {
                 sinfoniaCallback.onFetch(applicationName, e)
@@ -223,6 +268,9 @@ class SinfoniaService : Service(), SinfoniaMethods {
         scope.launch {
             val applicationName = intent.getStringExtra("applicationName") ?: ""
             val tunnelName = intent.getStringExtra("tunnelName") ?: applicationName
+            val application = intent.getStringArrayListExtra("application") ?: listOf()
+            wireGuardClient.fetchMyTunnels(application)
+            wireGuardClient.setTunnelDownAll()
             try {
                 sinfonia = SinfoniaTier3(
                     ctx = get(),
@@ -230,7 +278,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
                     applicationName = applicationName,
                     uuid = intent.getStringExtra("uuid"),
                     zeroconf = intent.getBooleanExtra("zeroconf", false),
-                    application = intent.getStringArrayListExtra("application") ?: listOf()
+                    application = application
                 ).deploy()
             } catch (e: Throwable) {
                 sinfoniaCallback.onDeploy(applicationName, e)
@@ -240,12 +288,19 @@ class SinfoniaService : Service(), SinfoniaMethods {
 
             try {
                 createTunnel(tunnelName)
-                setTunnelUp(tunnelName)
             } catch (e: Throwable) {
                 sinfoniaCallback.onTunnelCreated(tunnelName, e)
                 return@launch
             }
             sinfoniaCallback.onTunnelCreated(tunnelName, null)
+
+            try {
+                wireGuardClient.setTunnelUp(tunnelName)
+            } catch (e: Throwable) {
+                sinfoniaCallback.onTunnelSet(tunnelName, Tunnel.State.UP, e)
+                return@launch
+            }
+            sinfoniaCallback.onTunnelSet(tunnelName, Tunnel.State.UP, null)
         }
     }
 
@@ -259,10 +314,6 @@ class SinfoniaService : Service(), SinfoniaMethods {
         val newConfig = deployment.tunnelConfig
         Log.d(TAG, "createTunnel: $newConfig")
         wireGuardClient.createTunnel(tunnelName, newConfig)
-    }
-
-    private fun setTunnelUp(tunnelName: String) {
-        wireGuardClient.setTunnelUp(tunnelName)
     }
 
 //    private fun hasSameConfigTunnel(

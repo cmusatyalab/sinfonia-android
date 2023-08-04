@@ -36,7 +36,11 @@ object ErrorMessages {
         TunnelException.Reason.UNKNOWN to R.string.tunnel_error_reason_unknown,
         TunnelException.Reason.ALREADY_EXIST to R.string.tunnel_error_reason_already_exist,
         TunnelException.Reason.INVALID_NAME to R.string.tunnel_error_reason_invalid_name,
-        TunnelException.Reason.NOT_FOUND to R.string.tunnel_error_reason_not_found
+        TunnelException.Reason.NOT_FOUND to R.string.tunnel_error_reason_not_found,
+        TunnelException.Reason.ALREADY_UP to R.string.tunnel_error_reason_already_up,
+        TunnelException.Reason.ALREADY_DOWN to R.string.tunnel_error_reason_already_down,
+        TunnelException.Reason.ALREADY_TOGGLE to R.string.tunnel_error_reason_already_toggle,
+        TunnelException.Reason.UNAUTHORIZED_ACCESS to R.string.tunnel_error_reason_unauthorized_access
     )
 //    private val BCE_REASON_MAP = mapOf(
 //        BadConfigException.Reason.INVALID_KEY to R.string.bad_config_reason_invalid_key,

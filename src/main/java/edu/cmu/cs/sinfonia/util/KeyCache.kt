@@ -36,11 +36,6 @@ class KeyCache(context: Context) {
         return true
     }
 
-    fun saveKeys(uuid: UUID, privateKey: Key): Boolean {
-        val keyPair = KeyPair(privateKey)
-        return saveKeys(uuid, keyPair)
-    }
-
     fun getKeys(uuid: UUID): KeyPair {
         val data = sharedPreferences.getString(uuid.toString(), null)
         if (data == null) {

@@ -21,4 +21,10 @@
     <string name="tunnel_error_reason_unknown">Tunnel error reason unknown: %s</string>
     <string name="deploy_error_reason_unknown">Deploy error reason unknown</string>
     <string name="tunnel_error_reason_not_found">Tunnel “%s” not found</string>
+    <string name="tunnel_error_reason_already_up">Tunnel “%s“ is already up</string>
+    <string name="tunnel_error_reason_already_down">Tunnel “%s“ is already down</string>
+    <string name="tunnel_error_reason_already_toggle">Tunnel “%s“ is already toggle</string>
+    <string name="tunnel_error_reason_unauthorized_access">Not allowed to access tunnel ”%s”</string>
+    <string name="tunnel_set_success">Successfully set tunnel “%1$s” %2$s</string>
+    <string name="tunnel_set_error">Unable to set tunnel “%1$s” %2$s: %3$s</string>
 </resources>
