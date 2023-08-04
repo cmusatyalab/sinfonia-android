@@ -18,11 +18,9 @@ import androidx.databinding.adapters.ListenerUtil
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.button.MaterialButton
 import com.wireguard.android.BR
 import com.wireguard.android.R
 import com.wireguard.android.databinding.ObservableKeyedRecyclerViewAdapter.RowConfigurationHandler
-import com.wireguard.android.widget.ContainedButton
 import com.wireguard.android.widget.ToggleSwitch
 import com.wireguard.android.widget.ToggleSwitch.OnBeforeCheckedChangeListener
 import com.wireguard.android.widget.TvCardView
@@ -35,12 +33,6 @@ import java.util.Optional
  * Static methods for use by generated code in the Android data binding library.
  */
 object BindingAdapters {
-    @JvmStatic
-    @BindingAdapter("checked")
-    fun setChecked(view: ContainedButton, checked: Boolean) {
-        view.setCheckedInternal(checked)
-    }
-
     @JvmStatic
     @BindingAdapter("checked")
     fun setChecked(view: ToggleSwitch, checked: Boolean) {
@@ -133,15 +125,6 @@ object BindingAdapters {
         adapter.setRowConfigurationHandler(newRowConfigurationHandler)
         // Either the list changed, or this is an entirely new listener because the layout changed.
         adapter.setList(newList)
-    }
-
-    @JvmStatic
-    @BindingAdapter("onCheckedChanged")
-    fun setOnCheckedChanged(
-            view: ContainedButton,
-            listener: MaterialButton.OnCheckedChangeListener?
-    ) {
-        view.setOnCheckedChangeListener(listener)
     }
 
     @JvmStatic

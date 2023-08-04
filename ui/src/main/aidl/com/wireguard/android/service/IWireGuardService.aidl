@@ -13,6 +13,8 @@ interface IWireGuardService {
     void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat,
             double aDouble, String aString);
 
+    String[] fetchMyTunnels(in String[] applications);
+
     void refreshTunnels();
 
     TunnelException createTunnel(String tunnelName, in ParcelableConfig parcelableConfig);

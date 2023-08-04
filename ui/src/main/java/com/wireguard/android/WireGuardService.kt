@@ -32,6 +32,31 @@ class WireGuardService : Service() {
             TODO("Not yet implemented")
         }
 
+        override fun fetchMyTunnels(applications: Array<String>): Array<String> {
+            val mTunnels: MutableList<String> = mutableListOf()
+            runBlocking {
+                try {
+                    val tunnels = tunnelManager.getTunnels()
+                    for (tunnel in tunnels) {
+                        val includedApplications =
+                            tunnel.config?.`interface`?.includedApplications ?: continue
+                        var pass = false
+                        for (application in applications) {
+                            if (!includedApplications.contains(application)) {
+                                pass = true
+                                break
+                            }
+                        }
+                        if (pass) continue
+                        mTunnels.add(tunnel.key)
+                    }
+                } catch (e: Throwable) {
+                    Log.e(TAG, "fetchMyTunnels", e)
+                }
+            }
+            return mTunnels.toTypedArray()
+        }
+
         override fun refreshTunnels() {
             Log.i(TAG, "refreshTunnels")
             val intent = Intent(ACTION_REFRESH_TUNNEL_STATES)
@@ -90,9 +115,12 @@ class WireGuardService : Service() {
                     throwable = TunnelException(Reason.NOT_FOUND, tunnelName)
                     return@runBlocking
                 }
-                val newState: Tunnel.State
+                if (tunnel.state == Tunnel.State.UP) {
+                    throwable = TunnelException(Reason.ALREADY_UP, tunnelName)
+                    return@runBlocking
+                }
                 try {
-                    newState = tunnelManager.setTunnelState(tunnel, Tunnel.State.UP)
+                    tunnelManager.setTunnelState(tunnel, Tunnel.State.UP)
                 } catch (e: Throwable) {
                     Log.e(TAG, "setTunnelUp", e)
                     throwable = TunnelException(Reason.UNKNOWN)
@@ -111,9 +139,12 @@ class WireGuardService : Service() {
                     throwable = TunnelException(Reason.NOT_FOUND, tunnelName)
                     return@runBlocking
                 }
-                val newState: Tunnel.State?
+                if (tunnel.state == Tunnel.State.DOWN) {
+                    throwable = TunnelException(Reason.ALREADY_DOWN, tunnelName)
+                    return@runBlocking
+                }
                 try {
-                    newState = tunnelManager.setTunnelState(tunnel, Tunnel.State.DOWN)
+                    tunnelManager.setTunnelState(tunnel, Tunnel.State.DOWN)
                 } catch (e: Throwable) {
                     Log.e(TAG, "setTunnelDown", e)
                     throwable = TunnelException(Reason.UNKNOWN)
@@ -132,9 +163,12 @@ class WireGuardService : Service() {
                     throwable = TunnelException(Reason.NOT_FOUND, tunnelName)
                     return@runBlocking
                 }
-                val newState: Tunnel.State?
+                if (tunnel.state == Tunnel.State.TOGGLE) {
+                    throwable = TunnelException(Reason.ALREADY_TOGGLE, tunnelName)
+                    return@runBlocking
+                }
                 try {
-                    newState = tunnelManager.setTunnelState(tunnel, Tunnel.State.DOWN)
+                    tunnelManager.setTunnelState(tunnel, Tunnel.State.DOWN)
                 } catch (e: Throwable) {
                     Log.e(TAG, "setTunnelDown", e)
                     throwable = TunnelException(Reason.UNKNOWN)

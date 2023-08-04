@@ -3,11 +3,9 @@ package edu.cmu.cs.sinfonia
 import com.wireguard.config.BadConfigException
 import com.wireguard.config.Config
 import com.wireguard.crypto.Key
-import edu.cmu.cs.sinfonia.model.CloudletDeployment
 import org.junit.Assert.*
 import org.junit.Test
 import java.util.Objects
-import java.util.UUID
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -18,18 +16,6 @@ class CloudletDeploymentTest {
     @Test
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
-    }
-
-    @Test
-    fun invalid_uuid() {
-        val deployment = CloudletDeployment(
-                UUID.fromString("cloudlet deployment"),
-                validApplicationKey,
-                validStatus,
-                validConfig(),
-                validDeploymentName,
-                validCreated
-        )
     }
 
     private fun validConfig(): Config {

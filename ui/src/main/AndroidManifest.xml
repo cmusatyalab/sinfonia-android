@@ -49,12 +49,6 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".activity.DeployActivity"
-            android:label="@string/deploy_title"
-            android:exported="true"
-            android:parentActivityName=".activity.MainActivity" />
-
-        <activity
             android:name=".activity.TunnelToggleActivity"
             android:excludeFromRecents="true"
             android:theme="@style/NoBackgroundTheme" />
