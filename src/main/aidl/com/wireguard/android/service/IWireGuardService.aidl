@@ -17,7 +17,7 @@ interface IWireGuardService {
 
     void refreshTunnels();
 
-    TunnelException createTunnel(String tunnelName, in ParcelableConfig parcelableConfig);
+    TunnelException createTunnel(String tunnelName, in ParcelableConfig parcelableConfig, in boolean overwrite);
 
     TunnelException destroyTunnel(String tunnelName);
 

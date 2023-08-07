@@ -59,10 +59,10 @@ class WireGuardClient(private val context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun createTunnel(tunnelName: String, config: Config) {
+    fun createTunnel(tunnelName: String, config: Config, overwrite: Boolean) {
         if (mService == null) rebind()
         val parcelableConfig = ParcelableConfig(config)
-        val throwable: TunnelException? = mService?.createTunnel(tunnelName, parcelableConfig)
+        val throwable: TunnelException? = mService?.createTunnel(tunnelName, parcelableConfig, overwrite)
         if (throwable != null) throw throwable
     }
 
