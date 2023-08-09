@@ -15,8 +15,8 @@ object ErrorMessages {
         DeployException.Reason.UNKNOWN to R.string.deploy_error_reason_unknown,
         DeployException.Reason.UNAVAILABLE to R.string.deploy_error_reason_unavailable,
         DeployException.Reason.URL_NOT_FOUND to R.string.deploy_error_reason_url_not_found,
+        DeployException.Reason.INVALID_TIER_ONE_URL to R.string.deploy_error_reason_invalid_tier1_url,
         DeployException.Reason.INVALID_UUID to R.string.deploy_error_reason_invalid_uuid,
-        DeployException.Reason.UUID_NOT_FOUND to R.string.deploy_error_reason_uuid_not_found,
         DeployException.Reason.CANNOT_CAST_RESPONSE to R.string.deploy_error_reason_cannot_cast_response,
         DeployException.Reason.DEPLOYMENT_NOT_FOUND to R.string.deploy_error_reason_deployment_not_found
     )

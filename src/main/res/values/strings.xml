@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="deploy_error_reason_unavailable">Cloud service is unavailable</string>
+    <string name="deploy_error_reason_invalid_tier1_url">Invalid tier 1 url</string>
     <string name="deploy_error_reason_invalid_uuid">Invalid uuid</string>
-    <string name="deploy_error_reason_uuid_not_found">Uuid not found</string>
     <string name="deploy_error_reason_cannot_cast_response">Cannot cast response</string>
     <string name="deploy_error_reason_deployment_not_found">Deployment not found</string>
     <string name="unknown_error">Unknown error</string>

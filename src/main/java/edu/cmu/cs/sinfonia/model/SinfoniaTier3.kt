@@ -6,12 +6,15 @@ import android.os.Parcelable
 import android.util.Log
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import edu.cmu.cs.sinfonia.R
+import edu.cmu.cs.sinfonia.util.ErrorMessages
 import edu.cmu.cs.sinfonia.util.KeyCache
 import okhttp3.OkHttpClient
 import org.http4k.client.OkHttp
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
+import java.net.MalformedURLException
 import java.net.URL
 import java.util.UUID
 
@@ -45,13 +48,16 @@ class SinfoniaTier3(
 
     init {
         this.ctx = ctx
-        this.tier1Url = URL(url)
+        this.tier1Url = try {
+            URL(url)
+        } catch (e: MalformedURLException) {
+            throw DeployException(DeployException.Reason.INVALID_TIER_ONE_URL)
+        }
         this.applicationName = applicationName
         this.uuid = try {
             UUID.fromString(uuid)
         } catch (e: IllegalArgumentException) {
-            Log.e(TAG, "init: uuid", e)
-            null
+            throw DeployException(DeployException.Reason.INVALID_UUID)
         }
         this.zeroconf = zeroconf
         this.application = application
@@ -91,6 +97,12 @@ class SinfoniaTier3(
             }
         }
         Log.d(TAG, "Response: $statusCode, $responseBody")
+
+        when (statusCode) {
+            404 -> throw DeployException(DeployException.Reason.URL_NOT_FOUND)
+            500 -> throw DeployException(DeployException.Reason.DEPLOYMENT_NOT_FOUND)
+            503 -> throw DeployException(DeployException.Reason.UNAVAILABLE)
+        }
 
         return listOf()
     }
@@ -172,8 +184,8 @@ class SinfoniaTier3(
             UNKNOWN,
             UNAVAILABLE,
             URL_NOT_FOUND,
+            INVALID_TIER_ONE_URL,
             INVALID_UUID,
-            UUID_NOT_FOUND,
             CANNOT_CAST_RESPONSE,
             DEPLOYMENT_NOT_FOUND
         }
