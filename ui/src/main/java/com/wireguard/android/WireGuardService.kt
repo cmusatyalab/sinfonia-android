@@ -94,7 +94,7 @@ class WireGuardService : Service() {
          * createTunnel creates a tunnel with specified name and configuration. It returns Tunnel
          * Exception if an error occur.
          *
-         * @param tunnelName The tunnel name to be created
+         * @param tunnelName The tunnel name for the new tunnel
          * @param parcelableConfig The configuration of the tunnel
          * @param overwrite Overwrites tunnel configuration if it exists
          * @return The tunnel exception when an error occurred while creating a tunnel, or null.

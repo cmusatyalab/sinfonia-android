@@ -124,7 +124,6 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
         val intentFilter = IntentFilter(REFRESH_TUNNEL_STATES)
         intentFilter.addAction(SET_TUNNEL_UP)
         intentFilter.addAction(SET_TUNNEL_DOWN)
-        intentFilter.addAction(CREATE_TUNNEL)
         localBroadcastManager.registerReceiver(intentReceiver, intentFilter)
     }
 
@@ -275,6 +274,5 @@ class TunnelManager(private val configStore: ConfigStore) : BaseObservable() {
         private const val REFRESH_TUNNEL_STATES = "com.wireguard.android.action.REFRESH_TUNNEL_STATES"
         private const val SET_TUNNEL_UP = "com.wireguard.android.action.SET_TUNNEL_UP"
         private const val SET_TUNNEL_DOWN = "com.wireguard.android.action.SET_TUNNEL_DOWN"
-        private const val CREATE_TUNNEL = "com.wireguard.android.action.CREATE_TUNNEL"
     }
 }

@@ -33,10 +33,6 @@
         android:label="@string/permission_label"
         android:protectionLevel="dangerous" />
 
-    <permission
-        android:name="com.wireguard.android.permission.BIND_WIREGUARD_SERVICE"
-        android:protectionLevel="dangerous" />
-
     <application
         android:name=".Application"
         android:allowBackup="false"
@@ -132,8 +128,6 @@
                 <action android:name="com.wireguard.android.action.REFRESH_TUNNEL_STATES" />
                 <action android:name="com.wireguard.android.action.SET_TUNNEL_UP" />
                 <action android:name="com.wireguard.android.action.SET_TUNNEL_DOWN" />
-                <action android:name="com.wireguard.android.action.CREATE_TUNNEL" />
-                <action android:name="com.wireguard.android.action.GET_TUNNEL_STATE" />
             </intent-filter>
         </receiver>
 
@@ -159,7 +153,7 @@
         <service
             android:name=".WireGuardService"
             android:exported="true"
-            android:permission="com.wireguard.android.permission.BIND_WIREGUARD_SERVICE">
+            android:permission="${applicationId}.permission.CONTROL_TUNNELS">
             <intent-filter>
                 <action android:name="com.wireguard.android.service.IWireGuardService" />
             </intent-filter>
