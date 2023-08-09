@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="deploy_error_reason_invalid_tier_one_url">Invalid tier 1 url</string>
+    <string name="deploy_error_reason_unavailable">Cloud service is unavailable</string>
     <string name="deploy_error_reason_invalid_uuid">Invalid uuid</string>
     <string name="deploy_error_reason_uuid_not_found">Uuid not found</string>
     <string name="deploy_error_reason_cannot_cast_response">Cannot cast response</string>
@@ -27,4 +27,11 @@
     <string name="tunnel_error_reason_unauthorized_access">Not allowed to access tunnel ”%s”</string>
     <string name="tunnel_set_success">Successfully set tunnel “%1$s” %2$s</string>
     <string name="tunnel_set_error">Unable to set tunnel “%1$s” %2$s: %3$s</string>
+    <string name="wireguard_error_reason_unknown">WireGuard error reason unknown</string>
+    <string name="wireguard_error_reason_service_not_connected">WireGuard service is not connected</string>
+    <string name="wireguard_error_reason_permission_denied">Permission to control WireGuard tunnels is denied</string>
+    <string name="tunnel_control_permission_denied">Permission to “control WireGuard tunnels“ is denied. Please allow this permission in Settings.</string>
+    <string name="tunnel_control_unable_to_connect">Unable to connect to WireGuard service</string>
+    <string name="deploy_error_reason_wireguard">Cannot deploy/fetch backends: %s</string>
+    <string name="deploy_error_reason_url_not_found">The requested URL was not found on the server</string>
 </resources>

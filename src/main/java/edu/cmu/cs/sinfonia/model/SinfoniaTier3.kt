@@ -138,6 +138,12 @@ class SinfoniaTier3(
         }
         Log.d(TAG, "Response: $statusCode, $responseBody")
 
+        when (statusCode) {
+            404 -> throw DeployException(DeployException.Reason.URL_NOT_FOUND)
+            500 -> throw DeployException(DeployException.Reason.DEPLOYMENT_NOT_FOUND)
+            503 -> throw DeployException(DeployException.Reason.UNAVAILABLE)
+        }
+
         return listOf()
     }
 
@@ -164,7 +170,8 @@ class SinfoniaTier3(
 
         enum class Reason {
             UNKNOWN,
-            INVALID_TIER_ONE_URL,
+            UNAVAILABLE,
+            URL_NOT_FOUND,
             INVALID_UUID,
             UUID_NOT_FOUND,
             CANNOT_CAST_RESPONSE,
