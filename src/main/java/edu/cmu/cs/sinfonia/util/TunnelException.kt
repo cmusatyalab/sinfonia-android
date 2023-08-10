@@ -2,7 +2,6 @@ package edu.cmu.cs.sinfonia.util
 
 import android.os.Parcel
 import android.os.Parcelable
-import okhttp3.internal.format
 
 
 class TunnelException(private val reason: Reason, vararg format: Any?) : Exception(), Parcelable {
