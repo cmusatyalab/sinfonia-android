@@ -148,11 +148,11 @@ class SinfoniaService : Service(), SinfoniaMethods {
 
     inner class SinfoniaCallbacks : ComponentCallbacks {
         override fun onConfigurationChanged(newConfig: Configuration) {
-            TODO("Not yet implemented")
+            // TODO("Not yet implemented")
         }
 
         override fun onLowMemory() {
-            TODO("Not yet implemented")
+            // TODO("Not yet implemented")
         }
 
         fun onDisconnected(throwable: Throwable) {
