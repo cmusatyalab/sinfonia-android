@@ -201,7 +201,6 @@ class SinfoniaService : Service(), SinfoniaMethods {
                 if (throwable == null) {
                     val message = ctx.getString(R.string.tunnel_create_success, tunnelName)
                     Log.d(TAG, message)
-                    wireGuardClient.saveTunnel(tunnelName)
                     return@launch
                 }
                 val error = ErrorMessages[throwable]
@@ -222,7 +221,6 @@ class SinfoniaService : Service(), SinfoniaMethods {
                         }
                         else -> {}
                     }
-                    wireGuardClient.saveTunnel(tunnelName)
                 } else if (throwable is DeployException) {
                     sinfoniaCallback.onDeploy(tunnelName, throwable)
                 }
@@ -235,7 +233,6 @@ class SinfoniaService : Service(), SinfoniaMethods {
                 if (throwable == null) {
                     val message = ctx.getString(R.string.tunnel_destroy_success, tunnelName)
                     Log.d(TAG, message)
-                    wireGuardClient.removeTunnel(tunnelName)
                     return@launch
                 }
                 val error = ErrorMessages[throwable]
@@ -248,7 +245,6 @@ class SinfoniaService : Service(), SinfoniaMethods {
                         TunnelException.Reason.UNAUTHORIZED_ACCESS -> return@launch
                         else -> {}
                     }
-                    wireGuardClient.removeTunnel(tunnelName)
                 } else if (throwable is DeployException) {
                     sinfoniaCallback.onDeploy(tunnelName, throwable)
                 }
@@ -372,6 +368,7 @@ class SinfoniaService : Service(), SinfoniaMethods {
         }
     }
 
+    // Log the details of a WireGuard config
     private fun logConfig(config: Config) {
         val `interface` = config.`interface`
         val peers = config.peers

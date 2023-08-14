@@ -25,6 +25,7 @@ class TunnelExceptionTest {
         try {
             wireGuardClient.createTunnel(tunnelName, config, true)
             wireGuardClient.createTunnel(tunnelName, config, false)
+            fail("Should throw test_ALREADY_EXIST exception")
         } catch (throwable: TunnelException) {
             assertEquals(Reason.ALREADY_EXIST, throwable.getReason())
         } catch (throwable: Throwable) {
@@ -33,7 +34,9 @@ class TunnelExceptionTest {
         } finally {
             try {
                 wireGuardClient.destroyTunnel(tunnelName)
-            } catch (_: Throwable) {}
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
+            }
         }
     }
 
@@ -52,12 +55,15 @@ class TunnelExceptionTest {
         } finally {
             try {
                 wireGuardClient.destroyTunnel(validTunnelName)
-            } catch (_: Throwable) {}
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
+            }
         }
 
         val invalidTunnelName = "!@#$%^&?:>'^&*()_"
         try {
             wireGuardClient.createTunnel(invalidTunnelName, config, true)
+            fail("Should throw INVALID_NAME exception")
         } catch (throwable: TunnelException) {
             assertEquals(Reason.INVALID_NAME, throwable.getReason())
         } catch (throwable: Throwable) {
@@ -66,7 +72,9 @@ class TunnelExceptionTest {
         } finally {
             try {
                 wireGuardClient.destroyTunnel(invalidTunnelName)
-            } catch (_: Throwable) {}
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
+            }
         }
     }
 
@@ -86,34 +94,17 @@ class TunnelExceptionTest {
         } finally {
             try {
                 wireGuardClient.destroyTunnel(tunnelName)
-            } catch (_: Throwable) {}
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
+            }
         }
 
         val notFoundTunnelName = "TunnelNotFound"
-        try {
-            wireGuardClient.setTunnelUp(notFoundTunnelName)
-        } catch (throwable: TunnelException) {
-            assertEquals(Reason.NOT_FOUND, throwable.getReason())
-        } catch (throwable: Throwable) {
-            throwable.printStackTrace()
-            fail("Other exception thrown in test_NOT_FOUND")
-        }
-        try {
-            wireGuardClient.setTunnelDown(notFoundTunnelName)
-        } catch (throwable: TunnelException) {
-            assertEquals(Reason.NOT_FOUND, throwable.getReason())
-        } catch (throwable: Throwable) {
-            throwable.printStackTrace()
-            fail("Other exception thrown in test_NOT_FOUND")
-        }
-        try {
-            wireGuardClient.setTunnelToggle(notFoundTunnelName)
-        } catch (throwable: TunnelException) {
-            assertEquals(Reason.NOT_FOUND, throwable.getReason())
-        } catch (throwable: Throwable) {
-            throwable.printStackTrace()
-            fail("Other exception thrown in test_NOT_FOUND")
-        }
+        wireGuardClient.saveTunnel(notFoundTunnelName)
+        test_NOT_FOUND(notFoundTunnelName, wireGuardClient::setTunnelUp)
+        test_NOT_FOUND(notFoundTunnelName, wireGuardClient::setTunnelDown)
+        test_NOT_FOUND(notFoundTunnelName, wireGuardClient::setTunnelToggle)
+        wireGuardClient.removeTunnel(notFoundTunnelName)
     }
 
     @Test
@@ -126,59 +117,39 @@ class TunnelExceptionTest {
             throwable.printStackTrace()
             fail("Other exception thrown in test_ALREADY_UP")
         }
-        try {
-            wireGuardClient.setTunnelUp(tunnelName)
-        } catch (throwable: TunnelException) {
-            assertEquals(Reason.ALREADY_UP, throwable.getReason())
-        } catch (throwable: Throwable) {
-            throwable.printStackTrace()
-            fail("Other exception thrown in test_ALREADY_UP")
-        } finally {
-            try {
-                wireGuardClient.destroyTunnel(tunnelName)
-            } catch (_: Throwable) {}
-        }
+        test_ALREADY_STATE(tunnelName, wireGuardClient::setTunnelUp, Reason.ALREADY_UP)
     }
 
     @Test
     fun test_ALREADY_DOWN() {
         val tunnelName = "ALREADY_DOWN"
         createTunnel(tunnelName, "working-helloworld", "test_ALREADY_DOWN")
-        try {
-            wireGuardClient.setTunnelDown(tunnelName)
-        } catch (throwable: TunnelException) {
-            assertEquals(Reason.ALREADY_DOWN, throwable.getReason())
-        } catch (throwable: Throwable) {
-            throwable.printStackTrace()
-            fail("Other exception thrown in test_ALREADY_DOWN")
-        } finally {
-            try {
-                wireGuardClient.destroyTunnel(tunnelName)
-            } catch (_: Throwable) {}
-        }
+        test_ALREADY_STATE(tunnelName, wireGuardClient::setTunnelDown, Reason.ALREADY_DOWN)
     }
 
     @Test
-    fun test_ALREADY_TOGGLE() {
-        val tunnelName = "ALREADY_TOGGLE"
-        createTunnel(tunnelName, "working-helloworld", "test_ALREADY_TOGGLE")
+    fun test_UNAUTHORIZED_ACCESS() {
+        val tunnelName = "UNAUTH_ACCESS"
+        createTunnel(tunnelName, "working-helloworld", "test_UNAUTHORIZED_ACCESS")
+        wireGuardClient.removeTunnel(tunnelName)
+        test_UNAUTHORIZED_ACCESS(tunnelName, wireGuardClient::setTunnelUp)
+        test_UNAUTHORIZED_ACCESS(tunnelName, wireGuardClient::setTunnelDown)
+        test_UNAUTHORIZED_ACCESS(tunnelName, wireGuardClient::setTunnelToggle)
         try {
-            wireGuardClient.setTunnelToggle(tunnelName)
-        } catch (throwable: Throwable) {
-            throwable.printStackTrace()
-            fail("Other exception thrown in test_ALREADY_TOGGLE")
-        }
-        try {
-            wireGuardClient.setTunnelToggle(tunnelName)
+            wireGuardClient.destroyTunnel(tunnelName)
+            fail("Should throw UNAUTHORIZED_ACCESS exception")
         } catch (throwable: TunnelException) {
-            assertEquals(Reason.ALREADY_TOGGLE, throwable.getReason())
+            assertEquals(Reason.UNAUTHORIZED_ACCESS, throwable.getReason())
         } catch (throwable: Throwable) {
             throwable.printStackTrace()
-            fail("Other exception thrown in test_ALREADY_TOGGLE")
+            fail("Other exception thrown in test_UNAUTHORIZED_ACCESS")
         } finally {
+            wireGuardClient.saveTunnel(tunnelName)
             try {
                 wireGuardClient.destroyTunnel(tunnelName)
-            } catch (_: Throwable) {}
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
+            }
         }
     }
 
@@ -188,6 +159,52 @@ class TunnelExceptionTest {
             wireGuardClient.createTunnel(tunnelName, config, true)
         } catch (throwable: Throwable) {
             fail("Fail to create $tunnelName in $functionName")
+        }
+    }
+
+    private fun test_NOT_FOUND(tunnelName: String, method: (tunnelName: String) -> Unit) {
+        try {
+            method(tunnelName)
+            fail("Should throw NOT_FOUND exception")
+        } catch (throwable: TunnelException) {
+            assertEquals(Reason.NOT_FOUND, throwable.getReason())
+        } catch (throwable: Throwable) {
+            throwable.printStackTrace()
+            fail("Other exception thrown in test_NOT_FOUND")
+        }
+    }
+
+    private fun test_ALREADY_STATE(tunnelName: String, method: (tunnelName: String) -> Unit, reason: Reason) {
+        try {
+            method(tunnelName)
+            fail("Should throw $reason exception")
+        } catch (throwable: TunnelException) {
+            when (reason) {
+                Reason.ALREADY_UP -> assertEquals(Reason.ALREADY_UP, throwable.getReason())
+                Reason.ALREADY_DOWN -> assertEquals(Reason.ALREADY_DOWN, throwable.getReason())
+                else -> fail("Other exception thrown in test_$reason")
+            }
+        } catch (throwable: Throwable) {
+            throwable.printStackTrace()
+            fail("Other exception thrown in test_$reason")
+        } finally {
+            try {
+                wireGuardClient.destroyTunnel(tunnelName)
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
+            }
+        }
+    }
+
+    private fun test_UNAUTHORIZED_ACCESS(tunnelName: String, method: (tunnelName: String) -> Unit) {
+        try {
+            method(tunnelName)
+            fail("Should throw UNAUTHORIZED_ACCESS exception")
+        } catch (throwable: TunnelException) {
+            assertEquals(Reason.UNAUTHORIZED_ACCESS, throwable.getReason())
+        } catch (throwable: Throwable) {
+            throwable.printStackTrace()
+            fail("Other exception thrown in test_UNAUTHORIZED_ACCESS")
         }
     }
 

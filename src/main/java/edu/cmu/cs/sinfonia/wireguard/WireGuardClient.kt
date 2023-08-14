@@ -60,6 +60,7 @@ class WireGuardClient(private val context: Context) {
         val parcelableConfig = ParcelableConfig(config)
         val throwable: TunnelException? = mService?.createTunnel(tunnelName, parcelableConfig, overwrite)
         if (throwable != null) throw throwable
+        mTunnels.add(tunnelName)
     }
 
     fun destroyTunnel(tunnelName: String) {
@@ -67,16 +68,19 @@ class WireGuardClient(private val context: Context) {
         if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
         val throwable: TunnelException? = mService?.destroyTunnel(tunnelName)
         if (throwable != null) throw throwable
+        mTunnels.remove(tunnelName)
     }
 
     fun setTunnelUp(tunnelName: String) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
+        if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
         val throwable: TunnelException? = mService?.setTunnelUp(tunnelName)
         if (throwable != null) throw throwable
     }
 
     fun setTunnelDown(tunnelName: String) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
+        if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
         val throwable: TunnelException? = mService?.setTunnelDown(tunnelName)
         if (throwable != null) throw throwable
     }
@@ -92,12 +96,14 @@ class WireGuardClient(private val context: Context) {
 
     fun setTunnelToggle(tunnelName: String) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
+        if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
         val throwable: TunnelException? = mService?.setTunnelToggle(tunnelName)
         if (throwable != null) throw throwable
     }
 
     fun getTunnelConfig(tunnelName: String): Config? {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
+        if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
         val parcelableConfig: ParcelableConfig = mService?.getTunnelConfig(tunnelName) ?: return null
         return parcelableConfig.resolve()
     }
@@ -110,10 +116,12 @@ class WireGuardClient(private val context: Context) {
         return newParcelableConfig.resolve()
     }
 
+    // For unit test purpose only
     fun saveTunnel(tunnelName: String) {
         mTunnels.add(tunnelName)
     }
 
+    // For unit test purpose only
     fun removeTunnel(tunnelName: String) {
         mTunnels.remove(tunnelName)
     }
@@ -124,7 +132,8 @@ class WireGuardClient(private val context: Context) {
         for (tunnel in mTunnels) {
             try {
                 destroyTunnel(tunnel)
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
+                Log.e(TAG, "cleanup", e)
                 success = false
             }
         }
