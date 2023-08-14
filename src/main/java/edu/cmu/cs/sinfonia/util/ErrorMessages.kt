@@ -53,7 +53,6 @@ object ErrorMessages {
             rootCause.localizedMessage != null -> {
                 rootCause.localizedMessage!!
             }
-
             else -> {
                 val errorType = rootCause.javaClass.simpleName
                 resources.getString(R.string.generic_error, errorType)

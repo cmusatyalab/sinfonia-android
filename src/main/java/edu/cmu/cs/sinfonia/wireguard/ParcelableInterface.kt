@@ -1,6 +1,15 @@
 /*
- * Copyright © 2017-2023 WireGuard LLC. All Rights Reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright 2023 Carnegie Mellon University
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package edu.cmu.cs.sinfonia.wireguard
 
@@ -15,6 +24,18 @@ import com.wireguard.crypto.Key
 import com.wireguard.crypto.KeyFormatException
 import com.wireguard.crypto.KeyPair
 
+/**
+ * This class implements the parcelable version of class [Interface] in the tunnel library.
+ *
+ * @property excludedApplications
+ * @property includedApplications
+ * @property addresses
+ * @property dnsServers
+ * @property listenPort
+ * @property mtu
+ * @property privateKey
+ * @property publicKey
+ */
 class ParcelableInterface : Parcelable {
     private val excludedApplications: ArrayList<String> = arrayListOf()
 
@@ -85,21 +106,6 @@ class ParcelableInterface : Parcelable {
         dest.writeString(listenPort)
         dest.writeString(mtu)
         dest.writeString(privateKey)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun overwrite(`interface`: Interface) {
-        excludedApplications.clear()
-        includedApplications.clear()
-        addresses = Attribute.join(`interface`.addresses)
-        val dnsServerStrings = `interface`.dnsServers.map { it.hostAddress }.plus(`interface`.dnsSearchDomains)
-        dnsServers = Attribute.join(dnsServerStrings)
-        excludedApplications.addAll(`interface`.excludedApplications)
-        includedApplications.addAll(`interface`.includedApplications)
-        listenPort = `interface`.listenPort.map { it.toString() }.orElse("")
-        mtu = `interface`.mtu.map { it.toString() }.orElse("")
-        val keyPair = `interface`.keyPair
-        privateKey = keyPair.privateKey.toBase64()
     }
 
     private class ParcelableInterfaceCreator : Parcelable.Creator<ParcelableInterface> {
