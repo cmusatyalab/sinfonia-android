@@ -23,7 +23,7 @@ import com.wireguard.config.Config
 import com.wireguard.config.Peer
 
 /**
- * This class implements the parcelable version of class <em>Config</em> in the tunnel library.
+ * This class implements the parcelable version of class [Config] in the tunnel library.
  *
  * @property interface The interface of the tunnel
  * @property peers The array list of peers of the tunnel
@@ -74,21 +74,6 @@ class ParcelableConfig : Parcelable {
             dest.writeParcelableList(peers, flags)
         } else {
             dest.writeTypedList(peers)
-        }
-    }
-
-    fun readFromParcel(parcel: Parcel) {
-        ParcelableConfig(parcel)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun overwrite(config: Config) {
-        `interface`.overwrite(config.`interface`)
-        peers.clear()
-        config.peers.forEach {
-            val peer = ParcelablePeer(it)
-            peers.add(peer)
-            peer.bind(this)
         }
     }
 

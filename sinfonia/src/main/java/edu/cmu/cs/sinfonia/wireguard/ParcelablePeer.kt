@@ -22,7 +22,7 @@ import com.wireguard.config.BadConfigException
 import com.wireguard.config.Peer
 
 /**
- * This class implements the parcelable version of <em>Peer</em> in the tunnel library.
+ * This class implements the parcelable version of [Peer] in the tunnel library.
  *
  * @property dnsRoutes
  * @property allowedIpsState
@@ -79,8 +79,6 @@ class ParcelablePeer : Parcelable {
         publicKey = other.publicKey.toBase64()
     }
 
-    constructor()
-
     fun bind(owner: ParcelableConfig) {
         val interfaze: ParcelableInterface = owner.`interface`
         val peers = owner.peers
@@ -115,33 +113,6 @@ class ParcelablePeer : Parcelable {
 
     private fun getAllowedIpsSet() = setOf(*Attribute.split(allowedIps))
 
-    // Replace the first instance of the wildcard with the public network list, or vice versa.
-    // DNS servers only need to handled specially when we're excluding private IPs.
-    fun setExcludingPrivateIps(excludingPrivateIps: Boolean) {
-        if (!isAbleToExcludePrivateIps || isExcludingPrivateIps == excludingPrivateIps) return
-        val oldNetworks = if (excludingPrivateIps) IPV4_WILDCARD else IPV4_PUBLIC_NETWORKS
-        val newNetworks = if (excludingPrivateIps) IPV4_PUBLIC_NETWORKS else IPV4_WILDCARD
-        val input: Collection<String> = getAllowedIpsSet()
-        val outputSize = input.size - oldNetworks.size + newNetworks.size
-        val output: MutableCollection<String?> = LinkedHashSet(outputSize)
-        var replaced = false
-        // Replace the first instance of the wildcard with the public network list, or vice versa.
-        for (network in input) {
-            if (oldNetworks.contains(network)) {
-                if (!replaced) {
-                    for (replacement in newNetworks) if (!output.contains(replacement)) output.add(replacement)
-                    replaced = true
-                }
-            } else if (!output.contains(network)) {
-                output.add(network)
-            }
-        }
-        // DNS servers only need to handled specially when we're excluding private IPs.
-        if (excludingPrivateIps) output.addAll(dnsRoutes) else output.removeAll(dnsRoutes.toSet())
-        allowedIps = Attribute.join(output)
-        allowedIpsState = if (excludingPrivateIps) AllowedIpsState.CONTAINS_IPV4_PUBLIC_NETWORKS else AllowedIpsState.CONTAINS_IPV4_WILDCARD
-    }
-
     @Throws(BadConfigException::class)
     fun resolve(): Peer {
         val builder = Peer.Builder()
@@ -170,15 +141,6 @@ class ParcelablePeer : Parcelable {
         if (this.totalPeers == totalPeers) return
         this.totalPeers = totalPeers
         calculateAllowedIpsState()
-    }
-
-    fun unbind() {
-        if (owner == null) return
-        val peers = owner!!.peers
-        peers.remove(this)
-        setInterfaceDns("")
-        setTotalPeers(0)
-        owner = null
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
