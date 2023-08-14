@@ -14,7 +14,14 @@ import com.wireguard.config.Config
 import edu.cmu.cs.sinfonia.SinfoniaService.Companion.WIREGUARD_PACKAGE
 import edu.cmu.cs.sinfonia.util.TunnelException
 
-
+/**
+ * WireGuardClient is a client that binds to the WireGuard service and implements several IPC
+ * methods to control WireGuard tunnels.
+ *
+ * @property mService The stub to execute IPC methods
+ * @property mTunnels Authorized list of WireGuard tunnels to control
+ * @property serviceConnection The service connection for WireGuard service
+ */
 class WireGuardClient(private val context: Context) {
     private var mService: IWireGuardService? = null
     private var mTunnels: MutableList<String> = mutableListOf()
@@ -23,7 +30,6 @@ class WireGuardClient(private val context: Context) {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             mService = IWireGuardService.Stub.asInterface(service)
         }
-
         override fun onServiceDisconnected(name: ComponentName?) {
             mService = null
         }
@@ -44,16 +50,44 @@ class WireGuardClient(private val context: Context) {
         context.unbindService(serviceConnection)
     }
 
-    fun fetchMyTunnels(application: List<String>) {
+    /**
+     * fetchMyTunnels fetches all existing WireGuard tunnel names that include the input
+     * applications. These are the tunnels that this client is authorized to control. Need a better
+     * access control mechanism for tunnel controls.
+     *
+     * @param applications the applications included in the WireGuard interface
+     * @throws WireGuardException
+     */
+    fun fetchMyTunnels(applications: List<String>) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
-        mTunnels.addAll(mService?.fetchMyTunnels(application.toTypedArray()) ?: arrayOf())
+        mTunnels.addAll(mService?.fetchMyTunnels(applications.toTypedArray()) ?: arrayOf())
     }
 
+    /**
+     * refreshTunnels refreshes all tunnels in WireGuard
+     *
+     * @throws WireGuardException
+     */
     fun refreshTunnels() {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
         mService?.refreshTunnels()
     }
 
+    /**
+     * createTunnel creates a WireGuard tunnel with specified tunnel name and configuration.
+     * [overwrite] option must be specified: if set to true, the WireGuard configuration of the
+     * tunnel with [tunnelName], if exists, will be overwritten; if set to false,
+     * [TunnelException.Reason.ALREADY_EXIST] exception will be thrown if tunnel with [tunnelName]
+     * exists, and [mTunnels] will not be updated.
+     *
+     * @param tunnelName name of the tunnel to be created
+     * @param config the configuration for the tunnel to be created
+     * @param overwrite the boolean value to overwrite WireGuard configuration if the tunnel with
+     * [tunnelName] exists (this value will have no effect if the tunnel does not exist prior to
+     * calling this function)
+     * @throws WireGuardException
+     * @throws TunnelException
+     */
     @RequiresApi(Build.VERSION_CODES.N)
     fun createTunnel(tunnelName: String, config: Config, overwrite: Boolean) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
@@ -63,6 +97,13 @@ class WireGuardClient(private val context: Context) {
         mTunnels.add(tunnelName)
     }
 
+    /**
+     * destroyTunnel attempts to delete a WireGuard tunnel and remove it from [mTunnels].
+     *
+     * @param tunnelName the name of the WireGuard tunnel to be deleted
+     * @throws WireGuardException
+     * @throws TunnelException
+     */
     fun destroyTunnel(tunnelName: String) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
         if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
@@ -71,6 +112,13 @@ class WireGuardClient(private val context: Context) {
         mTunnels.remove(tunnelName)
     }
 
+    /**
+     * setTunnelUp attempts to open an existing WireGuard tunnel.
+     *
+     * @param tunnelName the name of the WireGuard tunnel to be opened
+     * @throws WireGuardException
+     * @throws TunnelException
+     */
     fun setTunnelUp(tunnelName: String) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
         if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
@@ -78,6 +126,13 @@ class WireGuardClient(private val context: Context) {
         if (throwable != null) throw throwable
     }
 
+    /**
+     * setTunnelDown attempts to close an existing WireGuard tunnel.
+     *
+     * @param tunnelName the name of the WireGuard tunnel to be closed
+     * @throws WireGuardException
+     * @throws TunnelException
+     */
     fun setTunnelDown(tunnelName: String) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
         if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
@@ -85,6 +140,11 @@ class WireGuardClient(private val context: Context) {
         if (throwable != null) throw throwable
     }
 
+    /**
+     * setTunnelDownAll attempts to close all WireGuard tunnels.
+     *
+     * @throws WireGuardException
+     */
     fun setTunnelDownAll() {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
         for (tunnel in mTunnels) {
@@ -94,6 +154,13 @@ class WireGuardClient(private val context: Context) {
         }
     }
 
+    /**
+     * setTunnelToggle attempts to set an existing WireGuard tunnel to TOGGLE state.
+     *
+     * @param tunnelName the name of the WireGuard tunnel to be set to TOGGLE state
+     * @throws WireGuardException
+     * @throws TunnelException
+     */
     fun setTunnelToggle(tunnelName: String) {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
         if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
@@ -111,6 +178,7 @@ class WireGuardClient(private val context: Context) {
     @RequiresApi(Build.VERSION_CODES.N)
     fun setTunnelConfig(tunnelName: String, config: Config): Config? {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
+        if (!mTunnels.contains(tunnelName)) throw TunnelException(TunnelException.Reason.UNAUTHORIZED_ACCESS)
         val parcelableConfig = ParcelableConfig(config)
         val newParcelableConfig: ParcelableConfig = mService?.setTunnelConfig(tunnelName, parcelableConfig) ?: return null
         return newParcelableConfig.resolve()
@@ -126,6 +194,12 @@ class WireGuardClient(private val context: Context) {
         mTunnels.remove(tunnelName)
     }
 
+    /**
+     * cleanup attempts to destroy all authorized WireGuard tunnels.
+     *
+     * @throws WireGuardException
+     * @return a boolean value to indicate if any exception is caught in tunnel deletion
+     */
     fun cleanup(): Boolean {
         if (mService == null) throw WireGuardException(WireGuardException.Reason.DISCONNECTED)
         var success = true
