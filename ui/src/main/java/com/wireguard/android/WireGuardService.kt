@@ -30,7 +30,7 @@ import edu.cmu.cs.sinfonia.wireguard.ParcelableConfig
 import kotlinx.coroutines.runBlocking
 
 /**
- * WireGuard service enables other applications to control the tunnels through IPC.
+ * WireGuard service enables client applications to control WireGuard tunnels through IPC.
  *
  * @property tunnelManager The tunnel controller used in the original WireGuard app
  * @property localBroadcastManager The broadcaster used send intents to the WireGuard app receiver
