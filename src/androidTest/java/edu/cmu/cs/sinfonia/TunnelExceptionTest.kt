@@ -104,6 +104,7 @@ class TunnelExceptionTest {
         test_NOT_FOUND(notFoundTunnelName, wireGuardClient::setTunnelUp)
         test_NOT_FOUND(notFoundTunnelName, wireGuardClient::setTunnelDown)
         test_NOT_FOUND(notFoundTunnelName, wireGuardClient::setTunnelToggle)
+        test_NOT_FOUND(notFoundTunnelName, wireGuardClient::destroyTunnel)
         wireGuardClient.removeTunnel(notFoundTunnelName)
     }
 
@@ -135,21 +136,12 @@ class TunnelExceptionTest {
         test_UNAUTHORIZED_ACCESS(tunnelName, wireGuardClient::setTunnelUp)
         test_UNAUTHORIZED_ACCESS(tunnelName, wireGuardClient::setTunnelDown)
         test_UNAUTHORIZED_ACCESS(tunnelName, wireGuardClient::setTunnelToggle)
+        test_UNAUTHORIZED_ACCESS(tunnelName, wireGuardClient::destroyTunnel)
+        wireGuardClient.saveTunnel(tunnelName)
         try {
             wireGuardClient.destroyTunnel(tunnelName)
-            fail("Should throw UNAUTHORIZED_ACCESS exception")
-        } catch (throwable: TunnelException) {
-            assertEquals(Reason.UNAUTHORIZED_ACCESS, throwable.getReason())
         } catch (throwable: Throwable) {
             throwable.printStackTrace()
-            fail("Other exception thrown in test_UNAUTHORIZED_ACCESS")
-        } finally {
-            wireGuardClient.saveTunnel(tunnelName)
-            try {
-                wireGuardClient.destroyTunnel(tunnelName)
-            } catch (throwable: Throwable) {
-                throwable.printStackTrace()
-            }
         }
     }
 
