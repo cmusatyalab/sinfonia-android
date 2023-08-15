@@ -264,6 +264,20 @@ class SinfoniaService : Service(), SinfoniaMethods {
                 Log.e(TAG, message, throwable)
             }
         }
+
+        fun onCleanup(throwable: Throwable?) {
+            val ctx = get()
+            scope.launch {
+                if (throwable == null) {
+                    val message = ctx.getString(R.string.cleanup_success)
+                    Log.d(TAG, message)
+                    return@launch
+                }
+                val error =  ErrorMessages[throwable]
+                val message = ctx.getString(R.string.cleanup_error, error)
+                Log.e(TAG, message, throwable)
+            }
+        }
     }
 
     override fun fetch(intent: Intent) {
@@ -346,8 +360,22 @@ class SinfoniaService : Service(), SinfoniaMethods {
         }
     }
 
-    override fun cleanup(): Boolean {
-        return wireGuardClient.cleanup()
+    override fun cleanup(intent: Intent) {
+        Log.i(TAG, "cleanup: $intent")
+        scope.launch {
+            val application = intent.getStringArrayListExtra("application") ?: listOf()
+            try {
+                wireGuardClient.fetchMyTunnels(application)
+                wireGuardClient.cleanup()
+            } catch (e: WireGuardException) {
+                sinfoniaCallback.onDisconnected(e)
+                return@launch
+            } catch (e: Throwable) {
+                sinfoniaCallback.onCleanup(e)
+                return@launch
+            }
+            sinfoniaCallback.onCleanup(null)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)

@@ -5,5 +5,5 @@ import android.content.Intent
 interface SinfoniaMethods {
     fun fetch(intent: Intent)
     fun deploy(intent: Intent)
-    fun cleanup(): Boolean
+    fun cleanup(intent: Intent)
 }

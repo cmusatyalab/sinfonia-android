@@ -34,4 +34,6 @@
     <string name="tunnel_control_unable_to_connect">Unable to connect to WireGuard service</string>
     <string name="deploy_error_reason_wireguard">Cannot deploy/fetch backends: %s</string>
     <string name="deploy_error_reason_url_not_found">The requested URL was not found on the server</string>
+    <string name="cleanup_success">Successfully destroyed all tunnels</string>
+    <string name="cleanup_error">Cannot destroy all tunnels: %s</string>
 </resources>
