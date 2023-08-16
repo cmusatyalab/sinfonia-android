@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Change to "com.wireguard.android.permission.CONTROL_TUNNELS" -->
     <uses-permission android:name="com.wireguard.android.debug.permission.CONTROL_TUNNELS" />
 
     <permission
