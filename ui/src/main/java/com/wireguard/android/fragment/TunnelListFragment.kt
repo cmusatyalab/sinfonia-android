@@ -4,7 +4,6 @@
  */
 package com.wireguard.android.fragment
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Resources
 import android.os.Bundle
@@ -257,7 +256,6 @@ class TunnelListFragment : BaseFragment() {
             }
         }
 
-        @SuppressLint("NotifyDataSetChanged")
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             actionMode = mode
             backPressedCallback?.isEnabled = true
@@ -270,7 +268,6 @@ class TunnelListFragment : BaseFragment() {
             return true
         }
 
-        @SuppressLint("NotifyDataSetChanged")
         override fun onDestroyActionMode(mode: ActionMode) {
             actionMode = null
             backPressedCallback?.isEnabled = false

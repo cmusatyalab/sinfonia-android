@@ -7,7 +7,6 @@ package com.wireguard.android.viewmodel
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
 import androidx.core.os.ParcelCompat
 import androidx.databinding.ObservableArrayList
 import androidx.databinding.ObservableList
@@ -20,7 +19,6 @@ class ConfigProxy : Parcelable {
     val peers: ObservableList<PeerProxy> = ObservableArrayList()
 
     private constructor(parcel: Parcel) {
-        Log.d(TAG, parcel.toString())
         `interface` = ParcelCompat.readParcelable(parcel, InterfaceProxy::class.java.classLoader, InterfaceProxy::class.java) ?: InterfaceProxy()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ParcelCompat.readParcelableList(parcel, peers, PeerProxy::class.java.classLoader, PeerProxy::class.java)
@@ -82,7 +80,6 @@ class ConfigProxy : Parcelable {
     }
 
     companion object {
-        private const val TAG = "WireGuard/ConfigProxy"
         @JvmField
         val CREATOR: Parcelable.Creator<ConfigProxy> = ConfigProxyCreator()
     }

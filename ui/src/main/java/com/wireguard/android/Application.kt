@@ -126,7 +126,6 @@ class Application : android.app.Application() {
 
     override fun onTerminate() {
         coroutineScope.cancel()
-        tunnelManager.onDestroy()
         super.onTerminate()
     }
 

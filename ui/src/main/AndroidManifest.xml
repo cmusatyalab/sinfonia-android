@@ -158,6 +158,10 @@
                 <action android:name="com.wireguard.android.service.IWireGuardService" />
             </intent-filter>
         </service>
+
+        <meta-data
+            android:name="android.content.APP_RESTRICTIONS"
+            android:resource="@xml/app_restrictions" />
     </application>
 
     <queries>

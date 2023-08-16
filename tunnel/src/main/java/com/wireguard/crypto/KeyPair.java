@@ -51,11 +51,4 @@ public class KeyPair {
     public Key getPublicKey() {
         return publicKey;
     }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (!(obj instanceof KeyPair other))
-            return false;
-        return publicKey.equals(other.publicKey) && privateKey.equals(other.privateKey);
-    }
 }
