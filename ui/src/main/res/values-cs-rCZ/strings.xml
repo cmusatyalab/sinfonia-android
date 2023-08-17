@@ -133,14 +133,4 @@
     <string name="multiple_tunnels_summary_on">Více tunelů může být zapnuto najednou</string>
     <string name="multiple_tunnels_title">Povolit více simultánních tunelů</string>
     <string name="name">Název</string>
-    <string name="deploy_title">Deployment Configuration</string>
-    <string name="deployment">Deployment</string>
-    <string name="deployment_name">Name</string>
-    <string name="application_title">Application</string>
-    <string name="tier_one_url_label">Cloud URL</string>
-    <string name="uuid_label">UUID</string>
-    <string name="application_key">Application Key</string>
-    <string name="deployment_status">Deployment Status</string>
-    <string name="created_label">Created</string>
-    <string name="launch">Launch</string>
 </resources>

@@ -108,14 +108,4 @@
     <string name="generate_new_private_key">Tạo private key mới</string>
     <string name="parse_error_inet_address">Địa chỉ IP</string>
     <string name="peer">Đồng trang lứa</string>
-    <string name="deploy_title">Deployment Configuration</string>
-    <string name="deployment">Deployment</string>
-    <string name="deployment_name">Name</string>
-    <string name="application_title">Application</string>
-    <string name="tier_one_url_label">Cloud URL</string>
-    <string name="uuid_label">UUID</string>
-    <string name="application_key">Application Key</string>
-    <string name="deployment_status">Deployment Status</string>
-    <string name="created_label">Created</string>
-    <string name="launch">Launch</string>
 </resources>

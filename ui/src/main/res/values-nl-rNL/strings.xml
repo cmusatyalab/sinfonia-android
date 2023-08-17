@@ -205,14 +205,4 @@
     <string name="biometric_prompt_private_key_title">Authenticeer om de persoonlijke sleutel te bekijken</string>
     <string name="biometric_auth_error">Authenticatiefout</string>
     <string name="biometric_auth_error_reason">Authenticatiefout: %s</string>
-    <string name="deploy_title">Deployment Configuration</string>
-    <string name="deployment">Deployment</string>
-    <string name="deployment_name">Name</string>
-    <string name="application_title">Application</string>
-    <string name="tier_one_url_label">Cloud URL</string>
-    <string name="uuid_label">UUID</string>
-    <string name="application_key">Application Key</string>
-    <string name="deployment_status">Deployment Status</string>
-    <string name="created_label">Created</string>
-    <string name="launch">Launch</string>
 </resources>
